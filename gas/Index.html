@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>品德三冠王登記</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#F1F3F7;
+  --surface:#FFFFFF;
+  --surface-2:#F7F8FB;
+  --ink:#151922;
+  --ink-2:#3D4552;
+  --muted:#6B7382;
+  --line:#DDE2EA;
+  --line-strong:#C4CBD6;
+  --accent:#2C58C8;
+  --accent-soft:#E7EDFC;
+  --plus:#14724A;
+  --plus-soft:#E2F2E9;
+  --minus:#B93A2C;
+  --minus-soft:#FBE8E5;
+  --walk:#2C58C8;
+  --self:#9C6607;
+  --clean:#0E7460;
+  --on-accent:#FFFFFF;
+  --bar-bg:rgba(255,255,255,.93);
+  --shadow:0 1px 2px rgba(21,25,34,.06), 0 8px 24px -12px rgba(21,25,34,.18);
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131A; --surface:#191E27; --surface-2:#141922;
+    --ink:#E9EDF4; --ink-2:#C2C9D5; --muted:#8D97A6;
+    --line:#2A313D; --line-strong:#3B4453;
+    --accent:#7E9EF2; --accent-soft:#1E2740;
+    --plus:#5CC58D; --plus-soft:#162C22;
+    --minus:#F08373; --minus-soft:#31201E;
+    --walk:#7E9EF2; --self:#DFAA51; --clean:#4FC0A5;
+    --on-accent:#0C0F14; --bar-bg:rgba(25,30,39,.93);
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131A; --surface:#191E27; --surface-2:#141922;
+  --ink:#E9EDF4; --ink-2:#C2C9D5; --muted:#8D97A6;
+  --line:#2A313D; --line-strong:#3B4453;
+  --accent:#7E9EF2; --accent-soft:#1E2740;
+  --plus:#5CC58D; --plus-soft:#162C22;
+  --minus:#F08373; --minus-soft:#31201E;
+  --walk:#7E9EF2; --self:#DFAA51; --clean:#4FC0A5;
+  --on-accent:#0C0F14; --bar-bg:rgba(25,30,39,.93);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:600px;margin:0 auto;padding:20px 16px 132px}
+
+header{margin-bottom:20px}
+.eyebrow{font-size:12px;letter-spacing:.18em;color:var(--muted);font-weight:500;margin:0 0 6px}
+h1{font-family:"Noto Serif TC",serif;font-weight:700;font-size:29px;line-height:1.25;
+   margin:0;letter-spacing:.02em;text-wrap:balance}
+.lede{color:var(--muted);margin:8px 0 0;font-size:14px;max-width:44ch}
+.viewer{
+  display:inline-flex;align-items:center;gap:7px;margin-top:12px;
+  background:var(--surface);border:1px solid var(--line);border-radius:999px;
+  padding:5px 13px 5px 9px;font-size:12.5px;color:var(--muted);
+}
+.viewer .dot{width:7px;height:7px;border-radius:50%;background:var(--plus);flex:none}
+.viewer.warn .dot{background:var(--minus)}
+.viewer b{color:var(--ink-2);font-weight:500}
+
+.step{margin-top:22px}
+.step-head{display:flex;align-items:baseline;gap:9px;margin-bottom:10px}
+.num{font-family:"Noto Serif TC",serif;font-weight:600;font-size:13px;color:var(--accent);
+     min-width:1.4em;font-variant-numeric:tabular-nums}
+.step-title{font-weight:700;font-size:15px;margin:0}
+.step-hint{color:var(--muted);font-size:12.5px;margin-left:auto}
+
+.field{
+  width:100%;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);border-radius:11px;padding:13px 14px;font:inherit;
+  transition:border-color .15s, box-shadow .15s;
+}
+.field::placeholder{color:var(--muted);opacity:.75}
+.field:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.big-id{font-size:20px;font-weight:700;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+
+.cats{display:grid;gap:8px}
+.cat{
+  display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:13px 15px;cursor:pointer;font:inherit;color:var(--ink);
+  transition:border-color .15s, background .15s;
+}
+.cat:hover{border-color:var(--line-strong)}
+.cat .crown{flex:none;color:var(--line-strong);transition:color .15s}
+.cat[aria-pressed="true"]{border-color:var(--c);box-shadow:inset 3px 0 0 var(--c), var(--shadow)}
+.cat[aria-pressed="true"] .crown{color:var(--c)}
+.cat[aria-pressed="true"] .cat-name{color:var(--c)}
+.cat-name{font-weight:700;font-size:15.5px;font-family:"Noto Serif TC",serif}
+.cat-sub{color:var(--muted);font-size:12.5px;display:block;font-weight:400}
+
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px;font:inherit;font-weight:700;cursor:pointer;color:var(--ink-2);
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:border-color .15s, background .15s, color .15s;
+}
+.mode .sign{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+  font-size:15px;font-weight:700;line-height:1;background:var(--line);color:var(--surface)}
+.mode[data-mode="plus"][aria-pressed="true"]{color:var(--plus);border-color:var(--plus);background:var(--plus-soft)}
+.mode[data-mode="plus"][aria-pressed="true"] .sign{background:var(--plus);color:var(--plus-soft)}
+.mode[data-mode="minus"][aria-pressed="true"]{color:var(--minus);border-color:var(--minus);background:var(--minus-soft)}
+.mode[data-mode="minus"][aria-pressed="true"] .sign{background:var(--minus);color:var(--minus-soft)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  background:var(--surface);border:1px solid var(--line);border-radius:999px;
+  padding:9px 15px;font:inherit;font-size:14px;cursor:pointer;color:var(--ink-2);
+  transition:border-color .15s, background .15s, color .15s;
+}
+.chip:hover{border-color:var(--line-strong)}
+.chip[aria-pressed="true"]{background:var(--sel-soft);border-color:var(--sel);color:var(--sel);font-weight:700}
+.multi-note{color:var(--muted);font-size:12.5px;margin:0 0 9px}
+#otherWrap{margin-top:9px}
+[hidden]{display:none!important}
+
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--bar-bg);
+  backdrop-filter:blur(10px);border-top:1px solid var(--line);
+  padding:11px 16px calc(11px + env(safe-area-inset-bottom))}
+.bar-inner{max-width:600px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.summary{flex:1;min-width:0;font-size:12.5px;color:var(--muted);line-height:1.45;margin:0}
+.summary b{color:var(--ink);font-weight:700}
+.go{
+  flex:none;background:var(--accent);color:var(--on-accent);border:none;
+  border-radius:11px;padding:13px 22px;font:inherit;font-weight:700;font-size:15px;
+  cursor:pointer;white-space:nowrap;transition:filter .15s;
+}
+.go:hover:not(:disabled){filter:brightness(1.06)}
+.go:disabled{background:var(--line-strong);color:var(--surface);cursor:not-allowed}
+.go:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.toast{
+  position:fixed;left:16px;right:16px;bottom:calc(78px + env(safe-area-inset-bottom));
+  max-width:568px;margin:0 auto;border-radius:12px;padding:12px 15px;
+  font-size:13.5px;font-weight:500;box-shadow:var(--shadow);
+  border:1px solid var(--ok-line);background:var(--ok-bg);color:var(--ok-fg);
+}
+.toast.err{--ok-bg:var(--minus-soft);--ok-fg:var(--minus);--ok-line:var(--minus)}
+.toast.ok{--ok-bg:var(--plus-soft);--ok-fg:var(--plus);--ok-line:var(--plus)}
+.toast.info{--ok-bg:var(--accent-soft);--ok-fg:var(--accent);--ok-line:var(--accent)}
+
+.note{margin-top:26px;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:var(--radius);padding:14px 17px;color:var(--ink-2);font-size:13.5px}
+.note b{color:var(--ink)}
+
+.log{margin-top:26px}
+.log h2{font-size:13px;margin:0 0 10px;letter-spacing:.06em;color:var(--muted);
+  font-weight:700;display:flex;align-items:center;gap:8px}
+.log h2 .rule{flex:1;height:1px;background:var(--line)}
+.log ul{list-style:none;margin:0;padding:0;display:grid;gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.log li{background:var(--surface);padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:13.5px}
+.log .tag{flex:none;font-weight:700;font-size:11.5px;padding:2px 8px;border-radius:999px;
+  background:var(--t-soft);color:var(--t)}
+.log .who{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.log .what{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log .time{margin-left:auto;flex:none;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.log-empty{color:var(--muted);font-size:13.5px;margin:0;padding:12px 14px;
+  border:1px dashed var(--line-strong);border-radius:var(--radius)}
+.clear{background:none;border:none;color:var(--muted);font:inherit;font-size:12px;
+  cursor:pointer;text-decoration:underline;padding:0}
+footer{margin-top:26px;color:var(--muted);font-size:12px;line-height:1.7}
+
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+@media (max-width:420px){h1{font-size:25px}.go{padding:12px 16px}.summary{font-size:12px}}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">臺北市信義區光復國民小學　學務處</p>
+    <h1>品德三冠王登記</h1>
+    <p class="lede">路隊、秩序、整潔的加扣分，一頁點完直接送出，不用再翻頁填表單。</p>
+    <div class="viewer" id="viewer" hidden><span class="dot"></span><span id="viewerText"></span></div>
+  </header>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="num">1</span>
+      <h2 class="step-title">登記老師</h2>
+      <span class="step-hint">會記住，下次免打</span>
+    </div>
+    <input id="name" class="field" type="text" placeholder="您的姓名（教職員工）" autocomplete="name">
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="num">2</span>
+      <h2 class="step-title">評分項目</h2>
+    </div>
+    <div class="cats" id="cats"></div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="num">3</span>
+      <h2 class="step-title">加分或扣分</h2>
+    </div>
+    <div class="modes" id="modes">
+      <button class="mode" type="button" data-mode="plus" aria-pressed="true"><span class="sign">＋</span>加分</button>
+      <button class="mode" type="button" data-mode="minus" aria-pressed="false"><span class="sign">－</span>扣分</button>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="num">4</span>
+      <h2 class="step-title">學生班級座號</h2>
+      <span class="step-hint">例：301-05</span>
+    </div>
+    <input id="sid" class="field big-id" type="text" placeholder="301-05" autocomplete="off" enterkeyhint="done">
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="num">5</span>
+      <h2 class="step-title" id="itemTitle">加分項目</h2>
+    </div>
+    <p class="multi-note" id="multiNote" hidden>可以複選，把看到的行為都點起來。</p>
+    <div class="chips" id="chips"></div>
+    <div id="otherWrap" hidden>
+      <input id="other" class="field" type="text" placeholder="其他，請具體描述行為">
+    </div>
+  </section>
+
+  <p class="note" id="note">本學期（115 學年度第 1 學期）的登記會寫進學務處試算表的 <b>115-1</b> 分頁，跟上學期的資料分開計算。連續登記時，姓名、評分項目和加扣分都會留著，只要換班級座號就好。</p>
+
+  <section class="log">
+    <h2>本機登記紀錄<span class="rule"></span><button class="clear" id="clearLog" type="button" hidden>清除</button></h2>
+    <div id="logBox"></div>
+  </section>
+
+  <footer>這份清單只存在您這台裝置的瀏覽器，方便自己回頭核對；正式資料以學務處試算表為準。</footer>
+</div>
+
+<div class="toast info" id="toast" hidden></div>
+
+<div class="bar">
+  <div class="bar-inner">
+    <p class="summary" id="summary"></p>
+    <button class="go" id="go" type="button" disabled>送出登記</button>
+  </div>
+</div>
+
+<script>
+const CATS = [
+  { key:"walk", name:"行儀楷模", sub:"放學路隊 · 學生禮儀", hue:"var(--walk)",
+    plus:{ title:"加分項目", multi:false, options:["有兩兩排好路隊","慢步行走","有禮貌"] },
+    minus:{ title:"不遵守規勸", multi:false, options:["邊走邊飲食","邊走邊聊天","奔跑","硬闖交通棍"] } },
+  { key:"self", name:"自律典範", sub:"自習時間 · 上下課時間", hue:"var(--self)",
+    plus:{ title:"加分項目", multi:false, options:["保持安靜","安全遊戲"] },
+    minus:{ title:"不遵守規勸", multi:true, options:["自習時間吵鬧","自習時間玩樂","自習時間奔跑","走廊奔跑","走廊打球","淋雨","邊走邊飲食","亂丟垃圾","做危險動作(例如：跨跳欄杆.跳樓梯)"] } },
+  { key:"clean", name:"整潔實踐", sub:"打掃時間 · 整潔狀況", hue:"var(--clean)",
+    plus:{ title:"加分項目", multi:false, options:["主動隨手撿校園垃圾","認真打掃"] },
+    minus:{ title:"不遵守規勸", multi:false, options:["邊打掃邊玩，沒打掃乾淨","打掃時間玩"] } }
+];
+
+const CROWN = '<svg class="crown" width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+  + '<path d="M3.2 8.4 6.6 12l3.1-5.4a2.7 2.7 0 0 0 4.6 0L17.4 12l3.4-3.6 -1.5 9.1a1.4 1.4 0 0 1-1.4 1.2H6.1a1.4 1.4 0 0 1-1.4-1.2L3.2 8.4Z" fill="currentColor"/></svg>';
+
+const LIVE = typeof google !== "undefined" && google.script && google.script.run;
+const state = { cat:"walk", mode:"plus", items:[], busy:false };
+
+const $ = s => document.querySelector(s);
+const els = {
+  name:$("#name"), sid:$("#sid"), cats:$("#cats"), modes:$("#modes"), chips:$("#chips"),
+  other:$("#other"), otherWrap:$("#otherWrap"), itemTitle:$("#itemTitle"), multiNote:$("#multiNote"),
+  summary:$("#summary"), go:$("#go"), toast:$("#toast"), logBox:$("#logBox"),
+  clearLog:$("#clearLog"), viewer:$("#viewer"), viewerText:$("#viewerText"), note:$("#note")
+};
+
+const cat = () => CATS.find(c => c.key === state.cat);
+const branch = () => cat()[state.mode];
+
+function store(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function load(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c])); }
+
+function renderCats(){
+  els.cats.innerHTML = CATS.map(c =>
+    '<button class="cat" type="button" data-key="' + c.key + '" style="--c:' + c.hue + '"'
+    + ' aria-pressed="' + (c.key === state.cat) + '">' + CROWN
+    + '<span><span class="cat-name">' + c.name + '</span>'
+    + '<span class="cat-sub">' + c.sub + '</span></span></button>').join("");
+}
+
+function renderChips(){
+  const b = branch();
+  els.itemTitle.textContent = b.title;
+  els.multiNote.hidden = !b.multi;
+  els.chips.style.setProperty("--sel", state.mode === "plus" ? "var(--plus)" : "var(--minus)");
+  els.chips.style.setProperty("--sel-soft", state.mode === "plus" ? "var(--plus-soft)" : "var(--minus-soft)");
+  els.chips.innerHTML = b.options.concat(["其他"]).map(o =>
+    '<button class="chip" type="button" data-v="' + esc(o) + '" aria-pressed="'
+    + (state.items.indexOf(o) > -1) + '">' + esc(o) + '</button>').join("");
+  els.otherWrap.hidden = state.items.indexOf("其他") === -1;
+}
+
+function payloadItems(){
+  return state.items.map(v => v === "其他" ? els.other.value.trim() : v).filter(v => v);
+}
+const itemsText = () => payloadItems().join("、");
+
+function missing(){
+  if (!els.name.value.trim()) return "還缺：您的姓名";
+  if (!els.sid.value.trim()) return "還缺：學生班級座號";
+  if (!state.items.length) return "還缺：" + branch().title;
+  if (state.items.indexOf("其他") > -1 && !els.other.value.trim()) return "還缺：其他的說明文字";
+  return null;
+}
+
+function refresh(){
+  document.documentElement.style.setProperty("--accent", cat().hue);
+  if (state.busy) return;
+  const gap = missing();
+  els.go.disabled = !!gap;
+  els.summary.innerHTML = gap
+    ? gap
+    : "<b>" + esc(els.sid.value.trim()) + "</b>　" + cat().name
+      + (state.mode === "plus" ? " 加分" : " 扣分") + "・" + esc(itemsText());
+}
+
+let toastTimer = null;
+function toast(kind, msg, hold){
+  els.toast.className = "toast " + kind;
+  els.toast.textContent = msg;
+  els.toast.hidden = false;
+  clearTimeout(toastTimer);
+  if (hold !== true) toastTimer = setTimeout(() => { els.toast.hidden = true; }, 4200);
+}
+
+/* ---------- 事件 ---------- */
+els.cats.addEventListener("click", e => {
+  const b = e.target.closest(".cat"); if (!b) return;
+  state.cat = b.dataset.key; state.items = []; els.other.value = "";
+  renderCats(); renderChips(); refresh();
+});
+
+els.modes.addEventListener("click", e => {
+  const b = e.target.closest(".mode"); if (!b) return;
+  state.mode = b.dataset.mode; state.items = []; els.other.value = "";
+  Array.prototype.forEach.call(els.modes.children, m =>
+    m.setAttribute("aria-pressed", String(m.dataset.mode === state.mode)));
+  renderChips(); refresh();
+});
+
+els.chips.addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  const v = b.dataset.v, i = state.items.indexOf(v);
+  if (branch().multi) { i > -1 ? state.items.splice(i,1) : state.items.push(v); }
+  else { state.items = i > -1 ? [] : [v]; }
+  renderChips(); refresh();
+  if (state.items.indexOf("其他") > -1) els.other.focus();
+});
+
+els.name.addEventListener("input", () => { store("pinde.name", els.name.value); refresh(); });
+els.sid.addEventListener("input", refresh);
+els.other.addEventListener("input", refresh);
+els.sid.addEventListener("keydown", e => { if (e.key === "Enter" && !els.go.disabled) els.go.click(); });
+
+els.go.addEventListener("click", () => {
+  if (els.go.disabled) return;
+  const rec = {
+    name: els.name.value.trim(), cat: state.cat, mode: state.mode,
+    sid: els.sid.value.trim(), items: payloadItems()
+  };
+  const shown = { sid: rec.sid, cat: cat().name, key: state.cat, mode: state.mode,
+                  what: itemsText(), at: Date.now() };
+
+  if (!LIVE) {
+    toast("info", "這是介面預覽版，沒有連到學務處試算表，資料不會真的送出。");
+    addLog(shown); resetEntry(); return;
+  }
+
+  state.busy = true;
+  els.go.disabled = true;
+  els.go.textContent = "送出中…";
+  els.summary.textContent = "正在寫入試算表…";
+
+  google.script.run
+    .withSuccessHandler(res => {
+      state.busy = false;
+      els.go.textContent = "送出登記";
+      toast("ok", "已登記　" + res.summary);
+      addLog(shown); resetEntry();
+    })
+    .withFailureHandler(err => {
+      state.busy = false;
+      els.go.textContent = "送出登記";
+      toast("err", "沒有送出：" + (err && err.message ? err.message : "請稍後再試一次"), true);
+      refresh();
+    })
+    .submitRecord(rec);
+});
+
+function resetEntry(){
+  els.sid.value = "";
+  state.items = [];
+  els.other.value = "";
+  renderChips(); refresh();
+  els.sid.focus();
+}
+
+/* ---------- 本機紀錄 ---------- */
+function logs(){ try { return JSON.parse(load("pinde.log") || "[]"); } catch(e){ return []; } }
+function addLog(rec){ const l = logs(); l.unshift(rec); store("pinde.log", JSON.stringify(l.slice(0,30))); renderLog(); }
+function renderLog(){
+  const l = logs();
+  els.clearLog.hidden = !l.length;
+  if (!l.length) {
+    els.logBox.innerHTML = '<p class="log-empty">您在這台裝置送出的登記會列在這裡，方便回頭核對。</p>';
+    return;
+  }
+  const hues = { walk:"var(--walk)", self:"var(--self)", clean:"var(--clean)" };
+  els.logBox.innerHTML = "<ul>" + l.map(r => {
+    const t = new Date(r.at);
+    const hh = String(t.getHours()).padStart(2,"0") + ":" + String(t.getMinutes()).padStart(2,"0");
+    const md = (t.getMonth()+1) + "/" + t.getDate();
+    const c = r.mode === "plus" ? "var(--plus)" : "var(--minus)";
+    const cs = r.mode === "plus" ? "var(--plus-soft)" : "var(--minus-soft)";
+    return '<li><span class="tag" style="--t:' + c + ';--t-soft:' + cs + '">'
+      + (r.mode === "plus" ? "＋" : "－") + esc(r.cat) + '</span>'
+      + '<span class="who" style="color:' + (hues[r.key] || "var(--ink)") + '">' + esc(r.sid) + '</span>'
+      + '<span class="what">' + esc(r.what) + '</span>'
+      + '<span class="time">' + md + " " + hh + '</span></li>';
+  }).join("") + "</ul>";
+}
+els.clearLog.addEventListener("click", () => { store("pinde.log","[]"); renderLog(); });
+
+/* ---------- 啟動 ---------- */
+els.name.value = load("pinde.name") || "";
+renderCats(); renderChips(); renderLog(); refresh();
+
+if (LIVE) {
+  google.script.run.withSuccessHandler(v => {
+    els.viewer.hidden = false;
+    els.viewerText.innerHTML = v.email
+      ? '登入身分　<b>' + esc(v.email) + '</b>'
+      : '未取得登入帳號，登記仍可送出';
+    if (!v.email) els.viewer.classList.add("warn");
+  }).getViewer();
+} else {
+  els.viewer.hidden = false;
+  els.viewer.classList.add("warn");
+  els.viewerText.innerHTML = '<b>介面預覽版</b>　送出不會寫入試算表';
+  els.note.innerHTML = '這是介面預覽。正式版由學務處的 Apps Script 提供，送出會寫進試算表的 <b>115-1</b> 分頁，跟上學期的資料分開計算。';
+}
+</script>
+
+</html>
