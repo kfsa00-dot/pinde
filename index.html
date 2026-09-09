@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>品德三冠王登記</title>
+<meta name="description" content="光復國小品德三冠王加扣分登記入口">
+<meta name="theme-color" content="#1e3a5f">
+<meta name="color-scheme" content="light dark">
+
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="品德登記">
+
+<script>
+/* ===================================================================
+   ★ 唯一需要維護的地方 ★
+
+   APP_URL   登記網頁（Apps Script 網頁應用程式）的網址。
+             重新部署時如果沿用同一個部署作業，網址不會變，這裡不用改。
+             只有「新增部署作業」產生新網址時才要更新。
+
+   TERM      顯示在畫面上的學期字樣，換學期時順手改這裡。
+             （真正決定資料寫到哪一張工作表的是 gas/Code.gs 的 SHEET_NAME）
+   =================================================================== */
+const APP_URL = 'https://script.google.com/a/macros/kfps.tp.edu.tw/s/AKfycbztbx8xFACbO9xYDYq4spsS2cT6HoR99JIrlXDNvWTNJj1b7P-aPiaNzFUNA6G-hhz2/exec';
+const TERM = '115 學年度第 1 學期';
+</script>
+
+<style>
+:root{
+  --bg:#f2f4f7;
+  --surface:#ffffff;
+  --border:#d8dde5;
+  --text:#16202c;
+  --text-dim:#5c6875;
+  --brand:#1e3a5f;
+  --brand-text:#ffffff;
+  --focus:#2b6cb0;
+  --press:#e6ebf2;
+  --walk:#2c58c8;
+  --self:#9c6607;
+  --clean:#0e7460;
+  --warn-bg:#fdf6e3;
+  --warn-border:#e3cf95;
+  --warn-text:#6b5310;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#12161b;
+    --surface:#1c222a;
+    --border:#333d49;
+    --text:#eef2f6;
+    --text-dim:#a3aeba;
+    --brand:#1e3a5f;
+    --brand-text:#ffffff;
+    --focus:#7fb3e8;
+    --press:#2a323c;
+    --walk:#7e9ef2;
+    --self:#dfaa51;
+    --clean:#4fc0a5;
+    --warn-bg:#2a2415;
+    --warn-border:#4d4225;
+    --warn-text:#e2cd94;
+  }
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"PingFang TC","Noto Sans TC","Microsoft JhengHei",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:17px;
+  line-height:1.5;
+  -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.topbar{
+  background:var(--brand);
+  color:var(--brand-text);
+  padding:14px 16px;
+  padding-top:calc(14px + env(safe-area-inset-top));
+  padding-left:calc(16px + env(safe-area-inset-left));
+  padding-right:calc(16px + env(safe-area-inset-right));
+}
+.topbar p{margin:0;font-size:13px;opacity:.8;letter-spacing:.1em;}
+.topbar h1{margin:2px 0 0;font-size:21px;font-weight:700;letter-spacing:.02em;}
+
+.wrap{
+  max-width:520px;
+  margin:0 auto;
+  padding:20px 16px calc(28px + env(safe-area-inset-bottom));
+  padding-left:calc(16px + env(safe-area-inset-left));
+  padding-right:calc(16px + env(safe-area-inset-right));
+}
+
+.term{
+  display:inline-block;
+  font-size:13px;
+  color:var(--text-dim);
+  border:1px solid var(--border);
+  background:var(--surface);
+  border-radius:999px;
+  padding:3px 12px;
+}
+
+.items{
+  list-style:none;
+  margin:16px 0 0;
+  padding:0;
+  display:grid;
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+}
+.items li{
+  background:var(--surface);
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.items svg{flex:none;color:var(--c);}
+.items b{font-weight:700;font-size:16px;display:block;}
+.items span{color:var(--text-dim);font-size:13.5px;}
+
+.go{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-top:20px;
+  padding:18px;
+  background:var(--brand);
+  color:var(--brand-text);
+  text-decoration:none;
+  border-radius:12px;
+  font-size:19px;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+.go:active{opacity:.85;}
+.go:focus-visible{outline:3px solid var(--focus);outline-offset:2px;}
+.go svg{flex:none;}
+
+.hint{
+  margin:10px 2px 0;
+  font-size:13.5px;
+  color:var(--text-dim);
+  text-align:center;
+}
+
+.note{
+  margin-top:22px;
+  background:var(--warn-bg);
+  border:1px solid var(--warn-border);
+  color:var(--warn-text);
+  border-radius:12px;
+  padding:14px 16px;
+  font-size:14.5px;
+}
+.note h2{margin:0 0 6px;font-size:14.5px;font-weight:700;}
+.note p{margin:0 0 6px;}
+.note p:last-child{margin-bottom:0;}
+.note code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:13px;
+  background:rgba(128,128,128,.16);
+  padding:1px 5px;
+  border-radius:4px;
+}
+
+.foot{
+  margin-top:22px;
+  font-size:13px;
+  color:var(--text-dim);
+  line-height:1.7;
+}
+.foot a{color:var(--focus);}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <p>臺北市信義區光復國民小學　學務處</p>
+  <h1>品德三冠王登記</h1>
+</header>
+
+<main class="wrap">
+  <span class="term" id="term"></span>
+
+  <ul class="items">
+    <li style="--c:var(--walk)">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.2 8.4 6.6 12l3.1-5.4a2.7 2.7 0 0 0 4.6 0L17.4 12l3.4-3.6 -1.5 9.1a1.4 1.4 0 0 1-1.4 1.2H6.1a1.4 1.4 0 0 1-1.4-1.2L3.2 8.4Z" fill="currentColor"/></svg>
+      <span><b>行儀楷模</b><span>放學路隊 · 學生禮儀</span></span>
+    </li>
+    <li style="--c:var(--self)">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.2 8.4 6.6 12l3.1-5.4a2.7 2.7 0 0 0 4.6 0L17.4 12l3.4-3.6 -1.5 9.1a1.4 1.4 0 0 1-1.4 1.2H6.1a1.4 1.4 0 0 1-1.4-1.2L3.2 8.4Z" fill="currentColor"/></svg>
+      <span><b>自律典範</b><span>自習時間 · 上下課時間</span></span>
+    </li>
+    <li style="--c:var(--clean)">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.2 8.4 6.6 12l3.1-5.4a2.7 2.7 0 0 0 4.6 0L17.4 12l3.4-3.6 -1.5 9.1a1.4 1.4 0 0 1-1.4 1.2H6.1a1.4 1.4 0 0 1-1.4-1.2L3.2 8.4Z" fill="currentColor"/></svg>
+      <span><b>整潔實踐</b><span>打掃時間 · 整潔狀況</span></span>
+    </li>
+  </ul>
+
+  <a class="go" id="go" href="#">
+    開始登記
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </a>
+  <p class="hint">一頁選完加扣分，按下送出就完成，不用再翻表單。</p>
+
+  <section class="note">
+    <h2>開不起來的話</h2>
+    <p>登記網頁要用<b>校內帳號</b>（<code>@kfps.tp.edu.tw</code>）登入。</p>
+    <p>如果畫面出現「你需要存取權」，表示瀏覽器目前用的是別的 Google 帳號（常見是個人 Gmail）。請按畫面上的「切換帳戶」選校內帳號，或改用無痕視窗重新登入。</p>
+  </section>
+
+  <p class="foot">
+    登記資料會寫進學務處「品德三冠王評分（回覆）」試算表，<span id="termFoot"></span>的紀錄放在 <b>115-1</b> 分頁，跟上學期分開計算。<br>
+    <a href="https://kfsa00-dot.github.io/sa-hub/">回學務處查詢系統入口</a>
+  </p>
+</main>
+
+<script>
+document.getElementById('go').href = APP_URL;
+document.getElementById('term').textContent = TERM;
+document.getElementById('termFoot').textContent = TERM;
+</script>
+</body>
+</html>
