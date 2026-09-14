@@ -111,22 +111,28 @@ h1{font-family:"Noto Serif TC",serif;font-weight:700;font-size:29px;line-height:
 .card[aria-pressed="true"] .cname svg{opacity:1}
 .card .csub{color:var(--muted);font-size:11.5px;margin:2px 0 0}
 
-/* ---------- 本月前三 ---------- */
-.podium{list-style:none;margin:0;padding:0;display:grid;gap:1px;
-  background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
-.podium li{background:var(--surface);padding:11px 14px;display:flex;align-items:center;gap:12px}
+/* ---------- 各年級前三 ---------- */
+.grades{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grade{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.grade h3{
+  margin:0;padding:9px 14px;font-size:12.5px;font-weight:700;letter-spacing:.08em;
+  color:var(--ink-2);background:var(--surface-2);border-bottom:1px solid var(--line);
+}
+.podium{list-style:none;margin:0;padding:0;display:grid;gap:1px;background:var(--line)}
+.podium li{background:var(--surface);padding:9px 14px;display:flex;align-items:center;gap:10px}
 .rk{
-  flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;
-  font-size:12.5px;font-weight:700;color:#fff;background:var(--rk);
+  flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+  font-size:12px;font-weight:700;color:#fff;background:var(--rk);
   font-variant-numeric:tabular-nums;
 }
-.pc{font-family:"Noto Serif TC",serif;font-weight:700;font-size:19px;
-  font-variant-numeric:tabular-nums;min-width:2.6em}
+.pc{font-family:"Noto Serif TC",serif;font-weight:700;font-size:18px;
+  font-variant-numeric:tabular-nums;min-width:2.5em}
 .pl{flex:1;min-width:0;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
 .pl .p{color:var(--plus);font-weight:700}
 .pl .n{color:var(--minus);font-weight:700}
-.pn{flex:none;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--plus)}
+.pn{flex:none;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--plus)}
 .pn.n{color:var(--minus)} .pn.zero{color:var(--muted)}
+.gempty{margin:0;padding:14px;text-align:center;color:var(--muted);font-size:12.5px;background:var(--surface)}
 
 /* ---------- 控制列 ---------- */
 .controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
@@ -203,6 +209,7 @@ footer b{color:var(--ink-2);font-weight:500}
 @media (max-width:560px){
   h1{font-size:25px}
   .cards{grid-template-columns:1fr 1fr;gap:8px}
+  .grades{grid-template-columns:1fr}
   .cls-no{font-size:17px;min-width:2.6em}
   .pc{font-size:17px}
 }
@@ -214,7 +221,7 @@ footer b{color:var(--ink-2);font-weight:500}
   <header>
     <p class="eyebrow">臺北市信義區光復國民小學　學務處</p>
     <h1>品德三冠王統計</h1>
-    <p class="lede">以班級為單位，統計每個月的加扣分次數。點項目可以單看那一項的前三名與各班分數，點班級可以看到每一筆的原始登記。</p>
+    <p class="lede">以班級為單位，統計每個月的加扣分次數。名次分年級排，點項目可以單看那一項，點班級可以看到每一筆的原始登記。</p>
     <a class="toreg" id="toreg" href="#">← 回到登記</a>
   </header>
 
@@ -316,14 +323,10 @@ function render(){
     return (b.plus - b.minus) - (a.plus - a.minus) || b.plus - a.plus || a.k.localeCompare(b.k);
   });
 
-  const rank = list.slice().sort((a, b) =>
-    (b.plus - b.minus) - (a.plus - a.minus) || b.plus - a.plus || a.k.localeCompare(b.k)
-  ).slice(0, 3);
-
   $("#app").innerHTML =
     monthsHTML() +
     catsHTML(recs.length) +
-    podiumHTML(rank) +
+    gradesHTML(list) +
     classesHTML(list, recs.length) +
     oddHTML(odd);
 
@@ -352,25 +355,43 @@ function catsHTML(n){
        + '<div class="cards">' + cards + '</div></section>';
 }
 
-function podiumHTML(rank){
+const GRADE_NAMES = ["一", "二", "三", "四", "五", "六"];
+const MEDALS = ["#C8971A", "#8A93A0", "#A9713C"];
+
+/* 名次一律分年級排：一到六年級各自取前三名。 */
+function gradesHTML(list){
   const label = state.cat ? CATS.find(c => c.key === state.cat).name : "三項合計";
-  const head = '<section class="sec"><div class="sec-head"><h2>本月前三</h2><span class="rule"></span>'
+  const head = '<section class="sec"><div class="sec-head"><h2>各年級前三</h2><span class="rule"></span>'
     + '<span class="meta">' + label + '・依淨分</span></div>';
-  if (!rank.length) return head + '<p class="empty">還沒有可以排名的紀錄。</p></section>';
-  const medals = ["#C8971A", "#8A93A0", "#A9713C"];
-  const rows = rank.map((o, i) => {
-    const net = o.plus - o.minus;
-    const detail = state.cat
-      ? '<span class="p">+' + o.plus + '</span> 加分　<span class="n">−' + o.minus + '</span> 扣分'
-      : CATS.map(c => c.name.slice(0, 2) + ' <span class="p">+' + o[c.key][0]
-          + '</span>/<span class="n">−' + o[c.key][1] + '</span>').join("　");
-    return '<li><span class="rk" style="--rk:' + medals[i] + '">' + (i + 1) + '</span>'
-      + '<span class="pc">' + o.k + '</span>'
-      + '<span class="pl">' + detail + '</span>'
-      + '<span class="pn ' + (net > 0 ? "" : net < 0 ? "n" : "zero") + '">'
-      + (net > 0 ? "+" : "") + net + '</span></li>';
-  }).join("");
-  return head + '<ol class="podium">' + rows + '</ol></section>';
+
+  const byGrade = {};
+  for (let g = 1; g <= 6; g++) byGrade[g] = [];
+  list.forEach(o => {
+    const g = Number(o.k.charAt(0));
+    if (byGrade[g]) byGrade[g].push(o);
+  });
+
+  const blocks = [];
+  for (let g = 1; g <= 6; g++) {
+    const top = byGrade[g].slice().sort((a, b) =>
+      (b.plus - b.minus) - (a.plus - a.minus) || b.plus - a.plus || a.k.localeCompare(b.k)
+    ).slice(0, 3);
+
+    const body = top.length
+      ? '<ol class="podium">' + top.map((o, i) => {
+          const net = o.plus - o.minus;
+          return '<li><span class="rk" style="--rk:' + MEDALS[i] + '">' + (i + 1) + '</span>'
+            + '<span class="pc">' + o.k + '</span>'
+            + '<span class="pl"><span class="p">+' + o.plus + '</span> 加分　'
+            + '<span class="n">−' + o.minus + '</span> 扣分</span>'
+            + '<span class="pn ' + (net > 0 ? "" : net < 0 ? "n" : "zero") + '">'
+            + (net > 0 ? "+" : "") + net + '</span></li>';
+        }).join("") + '</ol>'
+      : '<p class="gempty">本月尚無紀錄</p>';
+
+    blocks.push('<div class="grade"><h3>' + GRADE_NAMES[g - 1] + '年級</h3>' + body + '</div>');
+  }
+  return head + '<div class="grades">' + blocks.join("") + '</div></section>';
 }
 
 function classesHTML(list, total){
