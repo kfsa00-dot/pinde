@@ -151,6 +151,25 @@ body{
 .go:focus-visible{outline:3px solid var(--focus);outline-offset:2px;}
 .go svg{flex:none;}
 
+.go2{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-top:12px;
+  padding:14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text);
+  text-decoration:none;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:700;
+}
+.go2:active{background:var(--press);}
+.go2:focus-visible{outline:3px solid var(--focus);outline-offset:2px;}
+.go2 svg{flex:none;color:var(--focus);}
+
 .hint{
   margin:10px 2px 0;
   font-size:13.5px;
@@ -218,6 +237,11 @@ body{
   </a>
   <p class="hint">一頁選完加扣分，按下送出就完成，不用再翻表單。</p>
 
+  <a class="go2" id="stats" href="#">
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+    每月統計
+  </a>
+
   <section class="note">
     <h2>開不起來的話</h2>
     <p>登記網頁要用<b>校內帳號</b>（<code>@kfps.tp.edu.tw</code>）登入。</p>
@@ -232,6 +256,7 @@ body{
 
 <script>
 document.getElementById('go').href = APP_URL;
+document.getElementById('stats').href = APP_URL + '?page=stats';
 document.getElementById('term').textContent = TERM;
 document.getElementById('termFoot').textContent = TERM;
 </script>
