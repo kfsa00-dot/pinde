@@ -246,11 +246,20 @@ function monthLabel(k){
 }
 
 /* ---------- 取資料 ---------- */
-function load(){
-  if (!(typeof google !== "undefined" && google.script && google.script.run)) {
+/* google.script.run 是 Apps Script 非同步注入的，載入慢的時候還不存在，
+   所以先等它就緒再呼叫，不要在頂層直接用（會整段中斷，畫面變全白）。 */
+function ready(){
+  return typeof google !== "undefined" && google.script && google.script.run;
+}
+
+function load(tries){
+  tries = tries || 0;
+  if (!ready()) {
+    if (tries < 30) { setTimeout(function(){ load(tries + 1); }, 150); return; }
     $("#app").innerHTML = '<div class="err">這是介面預覽，沒有連到學務處試算表，所以沒有資料可以統計。</div>';
     return;
   }
+  google.script.run.withSuccessHandler(l => { $("#toreg").href = l.register; }).getLinks();
   google.script.run
     .withSuccessHandler(res => {
       state.all = res.records || [];
@@ -269,8 +278,6 @@ function load(){
     })
     .getAllRecords();
 }
-
-google.script.run.withSuccessHandler(l => { $("#toreg").href = l.register; }).getLinks();
 
 /* ---------- 統計 ---------- */
 function filtered(){
