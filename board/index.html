@@ -33,7 +33,35 @@ ul.news li:last-child{border-bottom:0}
 .nt{font-size:16px;color:#212121;text-decoration:none;font-weight:600}
 a.nt:hover{color:#b87b00;text-decoration:underline}
 .nd{margin:4px 0 0;font-size:14px;color:#5f5f5f;line-height:1.5}
+.lnks{margin:6px 0 0}
+.lnk{display:inline-block;background:#FFF4D6;color:#8a6a12;border:1px solid #eed9a3;border-radius:4px;
+     padding:2px 10px;margin:0 8px 0 0;font-size:13px;text-decoration:none}
+.lnk:hover{background:#F7E7BC}
+.nd.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mnote{display:none}
 .err{padding:12px;color:#8a6a12;background:#FFF4D6;border-radius:6px;font-size:14px}
+
+/* 手機：協作平台會把內嵌框壓成固定比例，內容放不下會被切掉，
+   所以窄畫面改成一行一項的精簡版，詳細內容點連結看。 */
+@media (max-width:700px){
+  section{padding:0 8px 6px}
+  h2{font-size:15px;margin:0 0 2px}
+  .more{font-size:12px;margin-left:8px}
+  .row{gap:8px}
+  .card{display:none}
+  .month{display:inline;font-size:12px}
+  .name{display:inline;font-size:15px;margin:0 0 0 6px}
+  .btn{display:inline-block;padding:2px 8px;font-size:12px;margin-left:8px}
+  .empty{font-size:13px}
+  .tbl{display:none}
+  .mnote{display:block;font-size:12px;color:#6b6b6b;margin:0}
+  ul.news li{padding:3px 0;gap:8px}
+  ul.news li:nth-child(n+2){display:none}
+  .date{font-size:11px;padding:1px 8px}
+  .nt{font-size:13px}
+  .nd{display:none}
+  .lnks{display:none}
+}
 </style>
 </head>
 <body>
@@ -151,11 +179,30 @@ function newsList(rows){
   for(var i=1;i<rows.length;i++){
     var d=parseDate(rows[i][0]);
     var title=String(rows[i][1]||'').trim();
-    if(!d||!title) continue;
+    var desc=String(rows[i][2]||'').trim();
+    var url=String(rows[i][3]||'').trim();
+    var file=String(rows[i][4]||'').trim();
+    if(!d||!title){
+      /* 日期、標題留白＝接續上一則（說明可以分好幾列打） */
+      if(out.length&&(desc||url||file)){
+        var prev=out[out.length-1];
+        if(desc) prev.desc=prev.desc?prev.desc+'\n'+desc:desc;
+        if(url&&!prev.url) prev.url=url;
+        if(file&&!prev.file) prev.file=file;
+      }
+      continue;
+    }
     out.push({key:d[0]*10000+d[1]*100+d[2],label:rocDate(d),title:title,
-      desc:String(rows[i][2]||'').trim(),url:String(rows[i][3]||'').trim()});
+      desc:desc,url:url,file:file});
   }
   return out.sort(function(a,b){return b.key-a.key;});
+}
+function nl2br(s){ return esc(s).replace(/\n/g,'<br>'); }
+function linkRow(n){
+  var a='';
+  if(n.url)  a+='<a class="lnk" href="'+esc(n.url)+'" target="_blank" rel="noopener">相關連結</a>';
+  if(n.file) a+='<a class="lnk" href="'+esc(n.file)+'" target="_blank" rel="noopener">附件</a>';
+  return a?'<p class="lnks">'+a+'</p>':'';
 }
 
 /* ---- 畫面 ---- */
@@ -186,6 +233,7 @@ function renderCrowns(data){
     }).join('')+'</tr>';
   }).join('');
   return '<section><h2>'+esc(data.label)+' 品德三冠王 '+more+'</h2>'+
+    '<p class="mnote">得獎班級請用電腦版查看。</p>'+
     '<div class="tbl"><table>'+th+trs+'</table></div></section>';
 }
 function renderNews(list,limit){
@@ -198,7 +246,8 @@ function renderNews(list,limit){
       ? '<a class="nt" href="'+esc(n.url)+'" target="_blank" rel="noopener">'+esc(n.title)+'</a>'
       : '<span class="nt">'+esc(n.title)+'</span>';
     return '<li><span class="date">'+esc(n.label)+'</span><div class="ntxt">'+title+
-      (n.desc?'<p class="nd">'+esc(n.desc)+'</p>':'')+'</div></li>';
+      (n.desc?'<p class="nd'+(limit?' clamp':'')+'">'+nl2br(n.desc)+'</p>':'')+
+      linkRow(n)+'</div></li>';
   }).join('');
   return '<section>'+head+'<ul class="news">'+items+'</ul></section>';
 }
