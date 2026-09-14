@@ -2,6 +2,7 @@
 <html>
 <head>
 <base target="_top">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>品德三冠王登記</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -76,6 +77,12 @@ h1{font-family:"Noto Serif TC",serif;font-weight:700;font-size:29px;line-height:
   padding:5px 13px 5px 9px;font-size:12.5px;color:var(--muted);
 }
 .viewer .dot{width:7px;height:7px;border-radius:50%;background:var(--plus);flex:none}
+.tostats{
+  display:inline-flex;align-items:center;gap:5px;margin-top:12px;margin-left:8px;
+  background:var(--surface);border:1px solid var(--line);border-radius:999px;
+  padding:5px 14px;font-size:12.5px;font-weight:500;color:var(--accent);text-decoration:none;
+}
+.tostats:hover{border-color:var(--accent)}
 .viewer.warn .dot{background:var(--minus)}
 .viewer b{color:var(--ink-2);font-weight:500}
 
@@ -192,7 +199,7 @@ footer{margin-top:26px;color:var(--muted);font-size:12px;line-height:1.7}
     <p class="eyebrow">臺北市信義區光復國民小學　學務處</p>
     <h1>品德三冠王登記</h1>
     <p class="lede">路隊、秩序、整潔的加扣分，一頁點完直接送出，不用再翻頁填表單。</p>
-    <div class="viewer" id="viewer" hidden><span class="dot"></span><span id="viewerText"></span></div>
+    <div class="viewer" id="viewer" hidden><span class="dot"></span><span id="viewerText"></span></div><a class="tostats" id="tostats" href="#" hidden>查看統計 →</a>
   </header>
 
   <section class="step">
@@ -453,6 +460,11 @@ els.name.value = load("pinde.name") || "";
 renderCats(); renderChips(); renderLog(); refresh();
 
 if (LIVE) {
+  google.script.run.withSuccessHandler(l => {
+    const a = document.getElementById("tostats");
+    a.href = l.stats;
+    a.hidden = false;
+  }).getLinks();
   google.script.run.withSuccessHandler(v => {
     els.viewer.hidden = false;
     els.viewerText.innerHTML = v.email

@@ -15,6 +15,11 @@
 // 表單的編輯用 ID（網址 /forms/d/<這一段>/edit）
 const FORM_ID = '1jGPnMreZXfngPsDUeCMkOWvSb59AaBtx7NgTy-BuyUc';
 
+// 這個網頁應用程式自己的網址，用來做「登記 ↔ 統計」兩頁互連。
+// 沿用同一個部署作業重新部署時網址不會變；只有「新增部署作業」才要更新這裡
+// （同時也要更新 GitHub repo 裡 index.html 的 APP_URL）。
+const WEB_APP_URL = 'https://script.google.com/a/macros/kfps.tp.edu.tw/s/AKfycbztbx8xFACbO9xYDYq4spsS2cT6HoR99JIrlXDNvWTNJj1b7P-aPiaNzFUNA6G-hhz2/exec';
+
 // 本學期登記要寫進哪一張工作表。
 // 這張表不存在時會自動建立，標題列直接沿用「表單回覆 1」，欄位完全一致。
 // 換學期時只要改這一行（例如下學期改成 '115-2'），上學期的資料就原封不動留著。
@@ -66,10 +71,17 @@ const OPTIONS = {
 
 /* ===================== 網頁 ===================== */
 
-function doGet() {
-  return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('品德三冠王登記')
+function doGet(e) {
+  var page = (e && e.parameter && e.parameter.page) || '';
+  var stats = (page === 'stats');
+  return HtmlService.createHtmlOutputFromFile(stats ? 'Stats' : 'Index')
+    .setTitle(stats ? '品德三冠王統計' : '品德三冠王登記')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+/** 兩個頁面互連用的網址。 */
+function getLinks() {
+  return { register: WEB_APP_URL, stats: WEB_APP_URL + '?page=stats' };
 }
 
 /** 網頁載入時取得目前登入者，顯示在畫面上。 */
@@ -216,6 +228,83 @@ function pickSheet_(ss, formTitle) {
     }
   }
   return sheets[0];
+}
+
+
+/* ===================== 統計 ===================== */
+
+/**
+ * 把兩張工作表（上學期的「表單回覆 1」＋本學期的分頁）全部讀出來，
+ * 攤平成一筆一筆的加扣分紀錄回給前端，月份篩選、排序、搜尋都在瀏覽器做。
+ *
+ * 一筆回應最多可能同時有加分和扣分兩段，所以用 BRANCH 逐段檢查。
+ * 欄位對應沿用 getContext_()，表單題目有增刪也不會錯位。
+ */
+function getAllRecords() {
+  var ctx = getContext_();
+
+  var sheets = [ctx.source];
+  if (ctx.sheet.getSheetId() !== ctx.source.getSheetId()) sheets.push(ctx.sheet);
+
+  var cats = Object.keys(BRANCH);
+  var out = [];
+
+  sheets.forEach(function (sh) {
+    var lastRow = sh.getLastRow();
+    var lastCol = sh.getLastColumn();
+    if (lastRow < 2 || lastCol < 1) return;
+
+    var width = Math.min(ctx.headers.length, lastCol);
+    var values = sh.getRange(2, 1, lastRow - 1, width).getValues();
+    var src = sh.getName();
+
+    values.forEach(function (row) {
+      var ts = row[0];
+      if (!(ts instanceof Date)) ts = new Date(ts);
+      if (!ts || isNaN(ts.getTime())) return;
+
+      var teacher = cell_(row, ctx.map[ITEM.name], width);
+      var email = (ctx.emailCol >= 0 && ctx.emailCol < width) ? String(row[ctx.emailCol] || '').trim() : '';
+
+      cats.forEach(function (key) {
+        ['plus', 'minus'].forEach(function (mode) {
+          var leg = BRANCH[key][mode];
+          var sid = cell_(row, ctx.map[leg.sidItem], width);
+          var items = cell_(row, ctx.map[leg.listItem], width);
+          if (!sid && !items) return;
+          out.push({
+            t: ts.getTime(),
+            c: key,                                 // walk / self / clean
+            m: (mode === 'plus') ? 1 : -1,          // 1 加分、-1 扣分
+            s: sid,                                 // 原始的「學生班級座號」文字
+            k: parseClass_(sid),                    // 推出來的班級，推不出來是空字串
+            i: items,                               // 行為項目
+            n: teacher,
+            e: email,
+            g: src                                  // 來源工作表
+          });
+        });
+      });
+    });
+  });
+
+  out.sort(function (a, b) { return b.t - a.t; });
+  return { records: out, sheets: sheets.map(function (s) { return s.getName(); }), generated: Date.now() };
+}
+
+function cell_(row, col, width) {
+  if (col === undefined || col === null || col >= width) return '';
+  return String(row[col] === null || row[col] === undefined ? '' : row[col]).trim();
+}
+
+/**
+ * 從「學生班級座號」欄推出班級。
+ * 老師填法很雜：40610（406班10號）、503體操教室、404王博裕.李承曦、606、60409、60412…
+ * 取第一組「年級(1-6)+兩位數」當班級；推不出來就回空字串，前端會另外列出來不讓它消失。
+ */
+function parseClass_(sid) {
+  var m = String(sid || '').match(/([1-6])(\d\d)/);
+  return m ? (m[1] + m[2]) : '';
 }
 
 

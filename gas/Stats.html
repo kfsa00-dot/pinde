@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>品德三冠王統計</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#F1F3F7;
+  --surface:#FFFFFF;
+  --surface-2:#F7F8FB;
+  --ink:#151922;
+  --ink-2:#3D4552;
+  --muted:#6B7382;
+  --line:#DDE2EA;
+  --line-strong:#C4CBD6;
+  --accent:#2C58C8;
+  --accent-soft:#E7EDFC;
+  --plus:#14724A;
+  --plus-soft:#E2F2E9;
+  --minus:#B93A2C;
+  --minus-soft:#FBE8E5;
+  --walk:#2C58C8;
+  --self:#9C6607;
+  --clean:#0E7460;
+  --on-accent:#FFFFFF;
+  --shadow:0 1px 2px rgba(21,25,34,.06), 0 8px 24px -12px rgba(21,25,34,.18);
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131A; --surface:#191E27; --surface-2:#141922;
+    --ink:#E9EDF4; --ink-2:#C2C9D5; --muted:#8D97A6;
+    --line:#2A313D; --line-strong:#3B4453;
+    --accent:#7E9EF2; --accent-soft:#1E2740;
+    --plus:#5CC58D; --plus-soft:#162C22;
+    --minus:#F08373; --minus-soft:#31201E;
+    --walk:#7E9EF2; --self:#DFAA51; --clean:#4FC0A5;
+    --on-accent:#0C0F14;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131A; --surface:#191E27; --surface-2:#141922;
+  --ink:#E9EDF4; --ink-2:#C2C9D5; --muted:#8D97A6;
+  --line:#2A313D; --line-strong:#3B4453;
+  --accent:#7E9EF2; --accent-soft:#1E2740;
+  --plus:#5CC58D; --plus-soft:#162C22;
+  --minus:#F08373; --minus-soft:#31201E;
+  --walk:#7E9EF2; --self:#DFAA51; --clean:#4FC0A5;
+  --on-accent:#0C0F14;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+
+header{margin-bottom:18px}
+.eyebrow{font-size:12px;letter-spacing:.18em;color:var(--muted);font-weight:500;margin:0 0 6px}
+h1{font-family:"Noto Serif TC",serif;font-weight:700;font-size:29px;line-height:1.25;
+   margin:0;letter-spacing:.02em;text-wrap:balance}
+.lede{color:var(--muted);margin:8px 0 0;font-size:14px;max-width:48ch}
+.toreg{
+  display:inline-flex;align-items:center;gap:6px;margin-top:14px;
+  background:var(--surface);border:1px solid var(--line);border-radius:999px;
+  padding:6px 15px;font-size:13.5px;font-weight:500;color:var(--accent);text-decoration:none;
+}
+.toreg:hover{border-color:var(--accent)}
+
+.sec{margin-top:26px}
+.sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:11px}
+.sec-head h2{font-size:13px;margin:0;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.sec-head .rule{flex:1;height:1px;background:var(--line)}
+.sec-head .meta{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ---------- 月份 ---------- */
+.months{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.month{
+  flex:none;background:var(--surface);border:1px solid var(--line);border-radius:999px;
+  padding:8px 16px;font:inherit;font-size:14px;cursor:pointer;color:var(--ink-2);
+  white-space:nowrap;font-variant-numeric:tabular-nums;
+  transition:border-color .15s, background .15s, color .15s;
+}
+.month:hover{border-color:var(--line-strong)}
+.month[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
+
+/* ---------- 評分項目（可點選） ---------- */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 13px;box-shadow:inset 3px 0 0 var(--line-strong);
+  font:inherit;text-align:left;cursor:pointer;color:var(--ink);
+  transition:border-color .15s, box-shadow .15s;
+}
+.card:hover{border-color:var(--line-strong)}
+.card[aria-pressed="true"]{box-shadow:inset 3px 0 0 var(--c), var(--shadow);border-color:var(--c)}
+.card[aria-pressed="true"] .cname{color:var(--c)}
+.card .cname{font-family:"Noto Serif TC",serif;font-weight:700;font-size:15px;
+  color:var(--ink-2);display:flex;align-items:center;gap:6px}
+.card .cname svg{opacity:.35}
+.card[aria-pressed="true"] .cname svg{opacity:1}
+.card .csub{color:var(--muted);font-size:11.5px;margin:2px 0 0}
+
+/* ---------- 本月前三 ---------- */
+.podium{list-style:none;margin:0;padding:0;display:grid;gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.podium li{background:var(--surface);padding:11px 14px;display:flex;align-items:center;gap:12px}
+.rk{
+  flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;
+  font-size:12.5px;font-weight:700;color:#fff;background:var(--rk);
+  font-variant-numeric:tabular-nums;
+}
+.pc{font-family:"Noto Serif TC",serif;font-weight:700;font-size:19px;
+  font-variant-numeric:tabular-nums;min-width:2.6em}
+.pl{flex:1;min-width:0;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+.pl .p{color:var(--plus);font-weight:700}
+.pl .n{color:var(--minus);font-weight:700}
+.pn{flex:none;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--plus)}
+.pn.n{color:var(--minus)} .pn.zero{color:var(--muted)}
+
+/* ---------- 控制列 ---------- */
+.controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.sorts{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.sort{
+  background:var(--surface);border:none;padding:8px 13px;font:inherit;font-size:13px;
+  cursor:pointer;color:var(--ink-2);
+}
+.sort[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.search{
+  flex:1;min-width:170px;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);border-radius:10px;padding:9px 13px;font:inherit;font-size:14px;
+}
+.search:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+
+/* ---------- 班級清單 ---------- */
+.classes{display:grid;gap:8px;margin-top:11px}
+.cls{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.cls-head{
+  width:100%;display:flex;align-items:center;gap:12px;background:none;border:none;
+  padding:12px 14px;font:inherit;color:var(--ink);cursor:pointer;text-align:left;
+}
+.cls-head:hover{background:var(--surface-2)}
+.cls-no{
+  font-family:"Noto Serif TC",serif;font-weight:700;font-size:19px;
+  font-variant-numeric:tabular-nums;letter-spacing:.02em;min-width:2.9em;
+}
+.legs{display:flex;gap:14px;flex-wrap:wrap;flex:1;font-size:12.5px;font-variant-numeric:tabular-nums}
+.leg{color:var(--muted)}
+.leg b{color:var(--c);font-weight:700}
+.leg .p{color:var(--plus);font-weight:700}
+.leg .n{color:var(--minus);font-weight:700}
+.leg .z{opacity:.45}
+.net{
+  flex:none;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;min-width:2.6em;text-align:right;
+}
+.net.p{color:var(--plus)} .net.n{color:var(--minus)} .net.zero{color:var(--muted)}
+.crowns{display:inline-flex;gap:1px;vertical-align:-2px;margin-left:5px}
+
+.detail{border-top:1px solid var(--line);background:var(--surface-2)}
+.rec{display:flex;gap:10px;padding:9px 14px;font-size:13px;border-bottom:1px solid var(--line)}
+.rec:last-child{border-bottom:none}
+.rec .d{flex:none;color:var(--muted);font-variant-numeric:tabular-nums;min-width:3.4em}
+.rec .tag{
+  flex:none;font-weight:700;font-size:11.5px;padding:1px 7px;border-radius:999px;height:fit-content;
+  background:var(--t-soft);color:var(--t);white-space:nowrap;
+}
+.rec .body{flex:1;min-width:0}
+.rec .what{color:var(--ink-2);overflow-wrap:anywhere}
+.rec .who{color:var(--muted);font-size:11.5px}
+.rec .who b{font-weight:500;color:var(--ink-2)}
+
+.empty{
+  color:var(--muted);font-size:13.5px;margin:0;padding:16px 14px;text-align:center;
+  border:1px dashed var(--line-strong);border-radius:var(--radius);
+}
+.loading{color:var(--muted);font-size:14px;padding:28px 0;text-align:center}
+.err{
+  background:var(--minus-soft);border:1px solid var(--minus);color:var(--minus);
+  border-radius:var(--radius);padding:13px 15px;font-size:13.5px;
+}
+
+details.odd{margin-top:11px}
+details.odd summary{
+  cursor:pointer;font-size:13px;color:var(--muted);padding:9px 0;
+}
+details.odd summary::marker{color:var(--line-strong)}
+.odd-list{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+
+footer{margin-top:28px;color:var(--muted);font-size:12px;line-height:1.8}
+footer b{color:var(--ink-2);font-weight:500}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+@media (max-width:560px){
+  h1{font-size:25px}
+  .cards{grid-template-columns:1fr 1fr;gap:8px}
+  .cls-no{font-size:17px;min-width:2.6em}
+  .pc{font-size:17px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">臺北市信義區光復國民小學　學務處</p>
+    <h1>品德三冠王統計</h1>
+    <p class="lede">以班級為單位，統計每個月的加扣分次數。點項目可以單看那一項的前三名與各班分數，點班級可以看到每一筆的原始登記。</p>
+    <a class="toreg" id="toreg" href="#">← 回到登記</a>
+  </header>
+
+  <div id="app">
+    <p class="loading">讀取登記紀錄中…</p>
+  </div>
+
+  <footer id="foot" hidden></footer>
+</div>
+
+<script>
+const CATS = [
+  { key:"walk",  name:"行儀楷模", sub:"放學路隊 · 學生禮儀",   hue:"var(--walk)"  },
+  { key:"self",  name:"自律典範", sub:"自習 · 上下課時間",     hue:"var(--self)"  },
+  { key:"clean", name:"整潔實踐", sub:"打掃時間 · 整潔狀況",   hue:"var(--clean)" }
+];
+const CROWN = '<svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">'
+  + '<path d="M3.2 8.4 6.6 12l3.1-5.4a2.7 2.7 0 0 0 4.6 0L17.4 12l3.4-3.6 -1.5 9.1a1.4 1.4 0 0 1-1.4 1.2H6.1a1.4 1.4 0 0 1-1.4-1.2L3.2 8.4Z" fill="currentColor"/></svg>';
+
+const state = { all: [], months: [], month: null, cat: null, sort: "net", q: "", open: new Set(), sheets: [] };
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+
+function monthKey(t){ const d = new Date(t); return d.getFullYear() + "-" + (d.getMonth() + 1); }
+function monthLabel(k){
+  const [y, m] = k.split("-");
+  const thisYear = new Date().getFullYear();
+  return (Number(y) === thisYear ? "" : y + "年") + m + " 月";
+}
+
+/* ---------- 取資料 ---------- */
+function load(){
+  if (!(typeof google !== "undefined" && google.script && google.script.run)) {
+    $("#app").innerHTML = '<div class="err">這是介面預覽，沒有連到學務處試算表，所以沒有資料可以統計。</div>';
+    return;
+  }
+  google.script.run
+    .withSuccessHandler(res => {
+      state.all = res.records || [];
+      state.sheets = res.sheets || [];
+      const set = new Set(state.all.map(r => monthKey(r.t)));
+      state.months = [...set].sort((a, b) => {
+        const [ay, am] = a.split("-").map(Number), [by, bm] = b.split("-").map(Number);
+        return by - ay || bm - am;
+      });
+      state.month = state.months[0] || null;
+      render();
+      renderFoot();
+    })
+    .withFailureHandler(err => {
+      $("#app").innerHTML = '<div class="err">讀不到資料：' + esc(err && err.message ? err.message : "請重新整理再試一次") + '</div>';
+    })
+    .getAllRecords();
+}
+
+google.script.run.withSuccessHandler(l => { $("#toreg").href = l.register; }).getLinks();
+
+/* ---------- 統計 ---------- */
+function filtered(){
+  let recs = state.month === "all" ? state.all : state.all.filter(r => monthKey(r.t) === state.month);
+  const q = state.q.trim().toLowerCase();
+  if (q) recs = recs.filter(r => (r.s + " " + r.i + " " + r.n + " " + r.k).toLowerCase().includes(q));
+  return recs;
+}
+
+function group(recs){
+  const map = new Map();
+  for (const r of recs) {
+    const k = r.k || "";
+    if (!map.has(k)) map.set(k, { k, walk:[0,0], self:[0,0], clean:[0,0], plus:0, minus:0, recs:[] });
+    const o = map.get(k);
+    o[r.c][r.m > 0 ? 0 : 1]++;
+    if (r.m > 0) o.plus++; else o.minus++;
+    o.recs.push(r);
+  }
+  return map;
+}
+
+/* ---------- 畫面 ---------- */
+function render(){
+  let recs = filtered();
+  if (state.cat) recs = recs.filter(r => r.c === state.cat);
+  const map = group(recs);
+  const odd = map.get("") || null;
+  map.delete("");
+
+  let list = [...map.values()];
+  list.sort((a, b) => {
+    if (state.sort === "cls") return a.k.localeCompare(b.k);
+    if (state.sort === "plus") return b.plus - a.plus || a.k.localeCompare(b.k);
+    if (state.sort === "minus") return b.minus - a.minus || a.k.localeCompare(b.k);
+    return (b.plus - b.minus) - (a.plus - a.minus) || b.plus - a.plus || a.k.localeCompare(b.k);
+  });
+
+  const rank = list.slice().sort((a, b) =>
+    (b.plus - b.minus) - (a.plus - a.minus) || b.plus - a.plus || a.k.localeCompare(b.k)
+  ).slice(0, 3);
+
+  $("#app").innerHTML =
+    monthsHTML() +
+    catsHTML(recs.length) +
+    podiumHTML(rank) +
+    classesHTML(list, recs.length) +
+    oddHTML(odd);
+
+  wire();
+}
+
+function monthsHTML(){
+  if (!state.months.length) return "";
+  const chips = state.months.map(k =>
+    '<button class="month" type="button" data-m="' + k + '" aria-pressed="' + (state.month === k) + '">'
+    + monthLabel(k) + '</button>').join("")
+    + '<button class="month" type="button" data-m="all" aria-pressed="' + (state.month === "all") + '">全部</button>';
+  return '<section class="sec"><div class="sec-head"><h2>月份</h2><span class="rule"></span></div>'
+       + '<div class="months" id="months">' + chips + '</div></section>';
+}
+
+function catsHTML(n){
+  const all = [{ key:"", name:"三項一起看", sub:"行儀 · 自律 · 整潔", hue:"var(--accent)" }].concat(CATS);
+  const cards = all.map(c =>
+    '<button class="card" type="button" data-c="' + c.key + '" style="--c:' + c.hue + '"'
+    + ' aria-pressed="' + ((state.cat || "") === c.key) + '">'
+    + '<span class="cname">' + CROWN + c.name + '</span>'
+    + '<span class="csub">' + c.sub + '</span></button>').join("");
+  return '<section class="sec"><div class="sec-head"><h2>評分項目</h2><span class="rule"></span>'
+       + '<span class="meta">共 ' + n + ' 筆</span></div>'
+       + '<div class="cards">' + cards + '</div></section>';
+}
+
+function podiumHTML(rank){
+  const label = state.cat ? CATS.find(c => c.key === state.cat).name : "三項合計";
+  const head = '<section class="sec"><div class="sec-head"><h2>本月前三</h2><span class="rule"></span>'
+    + '<span class="meta">' + label + '・依淨分</span></div>';
+  if (!rank.length) return head + '<p class="empty">還沒有可以排名的紀錄。</p></section>';
+  const medals = ["#C8971A", "#8A93A0", "#A9713C"];
+  const rows = rank.map((o, i) => {
+    const net = o.plus - o.minus;
+    const detail = state.cat
+      ? '<span class="p">+' + o.plus + '</span> 加分　<span class="n">−' + o.minus + '</span> 扣分'
+      : CATS.map(c => c.name.slice(0, 2) + ' <span class="p">+' + o[c.key][0]
+          + '</span>/<span class="n">−' + o[c.key][1] + '</span>').join("　");
+    return '<li><span class="rk" style="--rk:' + medals[i] + '">' + (i + 1) + '</span>'
+      + '<span class="pc">' + o.k + '</span>'
+      + '<span class="pl">' + detail + '</span>'
+      + '<span class="pn ' + (net > 0 ? "" : net < 0 ? "n" : "zero") + '">'
+      + (net > 0 ? "+" : "") + net + '</span></li>';
+  }).join("");
+  return head + '<ol class="podium">' + rows + '</ol></section>';
+}
+
+function classesHTML(list, total){
+  const head = '<section class="sec"><div class="sec-head"><h2>各班統計</h2><span class="rule"></span>'
+    + '<span class="meta">' + list.length + ' 個班級</span></div>'
+    + '<div class="controls">'
+    + '<div class="sorts" id="sorts">'
+    + sortBtn("net", "淨分") + sortBtn("plus", "加分") + sortBtn("minus", "扣分") + sortBtn("cls", "班級")
+    + '</div>'
+    + '<input class="search" id="q" type="search" placeholder="搜尋班級、座號、行為或登記老師" value="' + esc(state.q) + '">'
+    + '</div>';
+
+  if (!list.length) {
+    const msg = total ? "這個月的紀錄都沒填到看得懂的班級，請看下面那一區。"
+      : (state.cat ? "這個月這一項還沒有登記紀錄。" : "這個月還沒有任何登記紀錄。");
+    return head + '<p class="empty">' + msg + '</p></section>';
+  }
+
+  const rows = list.map(o => {
+    const net = o.plus - o.minus;
+    const sweep = !state.cat && CATS.every(c => o[c.key][0] > 0) && o.minus === 0;
+    const shown = state.cat ? CATS.filter(c => c.key === state.cat) : CATS;
+    const legs = shown.map(c => {
+      const [p, m] = o[c.key];
+      return '<span class="leg" style="--c:' + c.hue + '"><b>' + c.name.slice(0, 2) + '</b> '
+        + '<span class="p' + (p ? "" : " z") + '">+' + p + '</span> 加分 '
+        + '<span class="n' + (m ? "" : " z") + '">−' + m + '</span> 扣分</span>';
+    }).join("");
+    const open = state.open.has(o.k);
+    return '<div class="cls">'
+      + '<button class="cls-head" type="button" data-k="' + o.k + '" aria-expanded="' + open + '">'
+      + '<span class="cls-no">' + o.k
+      + (sweep ? '<span class="crowns" title="三項都有加分且沒有扣分">' + CROWN + CROWN + CROWN + '</span>' : '')
+      + '</span>'
+      + '<span class="legs">' + legs + '</span>'
+      + '<span class="net ' + (net > 0 ? "p" : net < 0 ? "n" : "zero") + '">' + (net > 0 ? "+" : "") + net + '</span>'
+      + '</button>'
+      + (open ? '<div class="detail">' + recsHTML(o.recs) + '</div>' : '')
+      + '</div>';
+  }).join("");
+
+  return head + '<div class="classes">' + rows + '</div></section>';
+}
+
+function recsHTML(recs){
+  return recs.slice().sort((a, b) => b.t - a.t).map(r => {
+    const d = new Date(r.t);
+    const cat = CATS.find(c => c.key === r.c);
+    const plus = r.m > 0;
+    return '<div class="rec">'
+      + '<span class="d">' + (d.getMonth() + 1) + "/" + d.getDate() + '</span>'
+      + '<span class="tag" style="--t:' + (plus ? "var(--plus)" : "var(--minus)")
+      + ';--t-soft:' + (plus ? "var(--plus-soft)" : "var(--minus-soft)") + '">'
+      + (plus ? "＋" : "－") + cat.name.slice(0, 2) + '</span>'
+      + '<span class="body"><span class="what">' + esc(r.i || "（未填項目）") + '</span><br>'
+      + '<span class="who">' + esc(r.s) + (r.n ? ' · <b>' + esc(r.n) + '</b>' : "") + '</span></span>'
+      + '</div>';
+  }).join("");
+}
+
+function oddHTML(odd){
+  if (!odd || !odd.recs.length) return "";
+  return '<details class="odd"><summary>另有 ' + odd.recs.length
+    + ' 筆看不出班級，沒有併入任何一班（座號欄填的是文字或格式特別），點開檢視</summary>'
+    + '<div class="odd-list">' + recsHTML(odd.recs) + '</div></details>';
+}
+
+function sortBtn(key, label){
+  return '<button class="sort" type="button" data-s="' + key + '" aria-pressed="'
+    + (state.sort === key) + '">' + label + '</button>';
+}
+
+function renderFoot(){
+  const f = $("#foot");
+  f.hidden = false;
+  f.innerHTML = '資料即時取自學務處「品德三冠王評分 (回覆)」試算表，來源分頁：<b>'
+    + state.sheets.map(esc).join("</b>、<b>") + '</b>。<br>'
+    + '以班級為單位統計：個別學生的登記一律併入該班，班級取自「學生班級座號」欄的前三碼。'
+    + '少數看不出班級的紀錄不會併入任何一班，列在最後一區。';
+}
+
+/* ---------- 事件 ---------- */
+function wire(){
+  const months = $("#months");
+  if (months) months.addEventListener("click", e => {
+    const b = e.target.closest(".month"); if (!b) return;
+    state.month = b.dataset.m; state.open.clear(); render();
+  });
+
+  const cards = document.querySelector(".cards");
+  if (cards) cards.addEventListener("click", e => {
+    const b = e.target.closest(".card"); if (!b) return;
+    state.cat = b.dataset.c || null; state.open.clear(); render();
+  });
+
+  const sorts = $("#sorts");
+  if (sorts) sorts.addEventListener("click", e => {
+    const b = e.target.closest(".sort"); if (!b) return;
+    state.sort = b.dataset.s; render();
+  });
+
+  const q = $("#q");
+  if (q) {
+    q.addEventListener("input", () => {
+      state.q = q.value;
+      const pos = q.selectionStart;
+      render();
+      const nq = $("#q");
+      if (nq) { nq.focus(); try { nq.setSelectionRange(pos, pos); } catch (e) {} }
+    });
+  }
+
+  document.querySelectorAll(".cls-head").forEach(b => {
+    b.addEventListener("click", () => {
+      const k = b.dataset.k;
+      if (state.open.has(k)) state.open.delete(k); else state.open.add(k);
+      render();
+    });
+  });
+}
+
+load();
+</script>
+</body>
+</html>
