@@ -241,24 +241,26 @@ function linkRow(n){
   return a?'<p class="lnks">'+a+'</p>':'';
 }
 
-/* ---- 畫面 ---- */
+/* ---- 畫面 ----
+   注意：協作平台的內嵌 iframe 沒有 allow-top-navigation，target="_top" 會被擋住、
+   點了完全沒反應，所以所有外連一律用 target="_blank"（sandbox 有 allow-popups）。 */
 function renderVirtue(label,name){
   var body;
   if(name){
     var no=('0'+(VIRTUES.indexOf(name)+1)).slice(-2);
     var url=CONFIG.SITE_BASE+no;
-    var pic='<a class="card" href="'+url+'" target="_top">'+
+    var pic='<a class="card" href="'+url+'" target="_blank" rel="noopener">'+
       '<img src="cards/'+no+'_'+name+'.png" alt="'+esc(name)+'"></a>';
     body='<div class="row">'+pic+'<div class="meta"><div class="month">'+esc(label)+'</div>'+
       '<div class="name">'+esc(name)+'</div>'+
-      '<a class="btn" href="'+url+'" target="_top">認識「'+esc(name)+'」</a></div></div>';
+      '<a class="btn" href="'+url+'" target="_blank" rel="noopener">認識「'+esc(name)+'」</a></div></div>';
   } else {
     body='<p class="empty">'+esc(label)+'的德目尚未公布，歡迎先瀏覽下方的十八項德目。</p>';
   }
   return '<section><h2>本月德目</h2>'+body+'</section>';
 }
 function renderCrowns(data){
-  var more='<a class="more" href="'+CONFIG.CROWNS_PAGE+'" target="_top">實施要點</a>';
+  var more='<a class="more" href="'+CONFIG.CROWNS_PAGE+'" target="_blank" rel="noopener">實施要點</a>';
   if(!data) return '<section><h2>品德三冠王 '+more+'</h2><p class="empty">得獎班級尚未公布。</p></section>';
   var th='<tr><th></th>'+CROWN_CATS.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr>';
   var trs=data.grades.map(function(r){
@@ -276,11 +278,11 @@ function renderNews(list,limit){
   if(limit){
     /* 首頁摘要：過期的自動下架，標題點了跳到活動訊息頁 */
     var live=list.filter(function(n){return !n.past;});
-    var head='<h2>活動訊息 <a class="more" href="'+CONFIG.NEWS_PAGE+'" target="_top">看全部</a></h2>';
+    var head='<h2>活動訊息 <a class="more" href="'+CONFIG.NEWS_PAGE+'" target="_blank" rel="noopener">看全部</a></h2>';
     if(!live.length) return '<section>'+head+'<p class="empty">目前沒有活動訊息。</p></section>';
     var items=live.slice(0,limit).map(function(n){
       return '<li><span class="date">'+esc(n.label)+'</span><div class="ntxt">'+
-        '<a class="nt" href="'+CONFIG.NEWS_PAGE+'" target="_top">'+esc(n.title)+'</a>'+
+        '<a class="nt" href="'+CONFIG.NEWS_PAGE+'" target="_blank" rel="noopener">'+esc(n.title)+'</a>'+
         (n.desc?'<p class="nd clamp">'+nl2br(n.desc)+'</p>':'')+'</div></li>';
     }).join('');
     return '<section>'+head+'<ul class="news">'+items+'</ul></section>';
