@@ -323,6 +323,11 @@ function render(){
     return (b.plus - b.minus) - (a.plus - a.minus) || b.plus - a.plus || a.k.localeCompare(b.k);
   });
 
+  /* 搜尋框不能跟著重建：重建會打斷輸入法，同一個字會被送進新舊兩個框（打一次出現兩個）。
+     先把舊的搜尋框留下來，畫面重畫完再放回原位。 */
+  const oldQ = document.getElementById("q");
+  const hadFocus = !!oldQ && document.activeElement === oldQ;
+
   $("#app").innerHTML =
     monthsHTML() +
     catsHTML(recs.length) +
@@ -330,6 +335,11 @@ function render(){
     classesHTML(list, recs.length) +
     oddHTML(odd);
 
+  if (oldQ) {
+    const nq = document.getElementById("q");
+    if (nq) nq.replaceWith(oldQ);
+    if (hadFocus) oldQ.focus();
+  }
   wire();
 }
 
@@ -494,13 +504,17 @@ function wire(){
   });
 
   const q = $("#q");
-  if (q) {
-    q.addEventListener("input", () => {
+  if (q && !q.dataset.wired) {
+    q.dataset.wired = "1";
+    /* 注音、倉頡等輸入法組字中不要篩選，組完字（compositionend）再算 */
+    q.addEventListener("input", e => {
+      if (e.isComposing) return;
       state.q = q.value;
-      const pos = q.selectionStart;
       render();
-      const nq = $("#q");
-      if (nq) { nq.focus(); try { nq.setSelectionRange(pos, pos); } catch (e) {} }
+    });
+    q.addEventListener("compositionend", () => {
+      state.q = q.value;
+      render();
     });
   }
 
