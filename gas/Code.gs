@@ -25,6 +25,10 @@ const WEB_APP_URL = 'https://script.google.com/a/macros/kfps.tp.edu.tw/s/AKfycbz
 // 換學期時只要改這一行（例如下學期改成 '115-2'），上學期的資料就原封不動留著。
 const SHEET_NAME = '115-1';
 
+// 統計頁只算這一天（含）之後的登記。上學期的資料仍留在試算表裡，只是不進統計。
+// 注意 JavaScript 的月份從 0 起算：new Date(2026, 8, 1) 是 2026 年 9 月 1 日。
+const STATS_START = new Date(2026, 8, 1);
+
 // 各題在表單裡的 item ID。改動表單題目「順序」不影響，
 // 但如果把題目刪掉重建，ID 會變，要回來更新這裡。
 const ITEM = {
@@ -262,6 +266,7 @@ function getAllRecords() {
       var ts = row[0];
       if (!(ts instanceof Date)) ts = new Date(ts);
       if (!ts || isNaN(ts.getTime())) return;
+      if (ts.getTime() < STATS_START.getTime()) return;
 
       var teacher = cell_(row, ctx.map[ITEM.name], width);
       var email = (ctx.emailCol >= 0 && ctx.emailCol < width) ? String(row[ctx.emailCol] || '').trim() : '';
