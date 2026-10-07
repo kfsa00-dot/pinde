@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>品德教育｜影片</title>
+<style>
+body{margin:0;background:#fff;color:#212121;font-family:Lato,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:8px}
+.v{display:block;text-decoration:none;color:inherit;border-radius:8px;overflow:hidden;
+   box-shadow:0 1px 4px rgba(0,0,0,.16);background:#fff;transition:box-shadow .15s,transform .15s}
+.v:hover{box-shadow:0 4px 12px rgba(0,0,0,.22);transform:translateY(-2px)}
+.th{position:relative;aspect-ratio:16/9;background:#222 center/cover no-repeat}
+.play{position:absolute;left:50%;top:50%;width:68px;height:48px;margin:-24px 0 0 -34px;
+      background:#ff0033;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.play::after{content:"";position:absolute;left:27px;top:14px;border-style:solid;
+      border-width:10px 0 10px 17px;border-color:transparent transparent transparent #fff}
+.t{padding:10px 12px 12px;font-size:16px;font-weight:600;line-height:1.4;
+   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hint{font-size:12px;color:#888;font-weight:400;margin-left:6px}
+.empty{padding:12px;color:#6b6b6b;font-size:15px}
+
+/* 手機：協作平台把內嵌框壓成固定比例，改成一行一部的精簡清單 */
+@media (max-width:700px){
+  .grid{grid-template-columns:1fr;gap:6px;padding:2px 4px}
+  .v{display:flex;align-items:center;box-shadow:none;border-radius:6px;background:#FFF8E6}
+  .v:hover{transform:none}
+  .th{flex:0 0 88px;width:88px;aspect-ratio:16/9;border-radius:6px}
+  .play{width:28px;height:20px;margin:-10px 0 0 -14px;border-radius:5px}
+  .play::after{left:11px;top:5px;border-width:5px 0 5px 8px}
+  .t{font-size:13px;padding:0 8px;-webkit-line-clamp:2}
+  .hint{display:none}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* 協作平台的內嵌框不准跳轉上層頁面，所以一律開新分頁（手機會直接開 YouTube App）。
+   影片資料來自 data/videos_final.csv。 */
+var VIDEOS={"01":[["2hxRWoG_oI4","你好，我是鱷魚：尊重/包容"],["sCDOHD2S-TY","一個屋簷下：尊重"],["Hor97_LCa4s","奶奶的勳章：尊重"],["ZvYYu8Mztc0","無限可能：惜物"]],"02":[["itGATZS2GFk","陪你上樓：同理心/耐心"],["TJj-kGT-V1c","為你而留：孝順/分享"],["y-pmQW_houI","給出一日的幸福：關懷行善"],["hunWtDTYJgI","奇蹟小鎮：關懷"]],"03":[["r6NYm6CMrZU","廖添丁傳奇：正義"],["yIVLYpbXcHA","三只豬酒甕：踏實"],["qCL6L2gCj2M","船長的信念傳承：守信"]],"04":[["w4j-6z-A9Vk","一條項鍊：分享/慷慨"],["ZDlQmPG3Mnc","早餐風波：包容/衝突管理"],["KI-SGm2_Duk","皮夾遺失記：信任/成見"]],"05":[["L8QqplcQt2E","兩個乞丐：感恩"],["dSgJ7ni_ZDA","老人賣湯圓：知足"],["Jl3lfq47C-Y","賣雞蛋的小女孩：感恩"],["ZvYYu8Mztc0","無限可能：惜物"]],"06":[["y-pmQW_houI","給出一日的幸福：關懷行善"],["GuOFDkhCkL4","希望所到之處：分享"],["Dt_1vQOm4rA","走向你心：體貼關懷"],["84gsPBRqAPA","背對背的小天使：原諒/和解"]],"07":[["Vv5Ez7y7ZmE","四個木偶：反省"],["VW5EJsMhGPg","酋長的選擇：責任"],["4QerhTVcBSU","富商與鐘錶師：信用"],["b4g8g8Lo_DM","另類雕塑展：挫折/面對失敗"]],"08":[["3hfsL8xPHZ8","肉粽與麻糬：勤儉"],["NTOIA9CYi4U","鹹魚翻身：自律／自信"],["yDgRfbF87m4","小樹苗的盼望：愛/忍耐"],["LJ-5-WkVM0o","平安夜奇談：心態/心情"]],"09":[["R5O7QQCUS2Y","賣香屁：善良"],["Dt_1vQOm4rA","走向你心：體貼關懷"],["74yevg0BkEA","蒂蒂貓的緞帶：分享"]],"10":[["JshkGAWCJZw","突破框架：思辨/謙虛"],["8lO6Oq6oIvo","剩菜便當：助人/體諒"],["LC-Nx43bd8k","揮灑新色彩：自我認同"]],"11":[["qVpu6nv8It4","黃鶯公主：誠信"],["DmWhdEikmXE","結果不同：執行力/承諾/自律/守信"],["4QerhTVcBSU","富商與鐘錶師：信用"]],"12":[["HAHQtNLzxl4","猴子紅屁股：助人"],["4mbK9XQBj9M","有你同行：互助/負責任"],["_VoL8BOLKXM","雨傘出租：幫助/憐憫"],["pbs4Ht0pBno","消失的假想敵：比較/合作"]],"13":[["4JpvwBDnnzE","貪吃的狐狸：誠實"],["Iey2qbpLhag","以心相交：誠實"],["GY-dDCZZGxA","禮物：真誠/體貼"]],"14":[["IweHCyAmHJI","豆粥婆婆：合作"],["ajTiw9jO5bk","和事佬：和睦/溝通力"],["i07bo5_fHWQ","爸爸不打掃：合作/平等"],["JL-y62flLMI","數學王國 (形狀王國)：合作"]],"15":[["b4g8g8Lo_DM","另類雕塑展：挫折/面對失敗"],["5wLv-aHAzyM","生存之道：堅持"],["eQDgfC98FjM","愛上星星的少年：堅持"]],"16":[["odkXakM64_M","虎姑婆：勇敢"],["fXsneBwubmo","專鼠美景：勇敢/改變"],["ZrHLe7eP9gM","柔韌之盾：勇敢"],["Uo8q2IzA5t4","膽小象邦邦：勇敢/情緒"]],"17":[["c-AqQGyJvZE","You jump I jump：不盲從/自我認同"],["DNng4uzs_K8","收集陽光：情緒/獨立/勇敢"],["X3C51N69YcA","長腿公主：自信"]],"18":[["YzDqVgdXhb4","周處除三害：禮貌"],["UpmKJWW3ndA","作文題目：體貼"],["w4j-6z-A9Vk","一條項鍊：分享/慷慨"],["74yevg0BkEA","蒂蒂貓的緞帶：分享"]]};
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+(function(){
+  var d=(new URLSearchParams(location.search)).get('d')||'';
+  d=('0'+d).slice(-2);
+  var list=VIDEOS[d]||[];
+  var app=document.getElementById('app');
+  if(!list.length){app.innerHTML='<p class="empty">這個德目還沒有影片。</p>';return;}
+  app.innerHTML='<div class="grid">'+list.map(function(v){
+    var id=v[0];
+    return '<a class="v" href="https://www.youtube.com/watch?v='+id+'" target="_blank" rel="noopener">'+
+      '<div class="th" style="background-image:url(https://i.ytimg.com/vi/'+id+'/hqdefault.jpg)"><span class="play"></span></div>'+
+      '<div class="t">'+esc(v[1])+'<span class="hint">在 YouTube 觀看</span></div></a>';
+  }).join('')+'</div>';
+})();
+</script>
+</body>
+</html>
