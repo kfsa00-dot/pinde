@@ -6,7 +6,7 @@
 <title>品德教育｜影片</title>
 <style>
 body{margin:0;background:#fff;color:#212121;font-family:Lato,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:8px;max-width:900px}
 .v{display:block;text-decoration:none;color:inherit;border-radius:8px;overflow:hidden;
    box-shadow:0 1px 4px rgba(0,0,0,.16);background:#fff;transition:box-shadow .15s,transform .15s}
 .v:hover{box-shadow:0 4px 12px rgba(0,0,0,.22);transform:translateY(-2px)}
@@ -22,10 +22,10 @@ body{margin:0;background:#fff;color:#212121;font-family:Lato,"Noto Sans TC","Pin
 
 /* 手機：協作平台把內嵌框壓成固定比例，改成一行一部的精簡清單 */
 @media (max-width:700px){
-  .grid{grid-template-columns:1fr;gap:6px;padding:2px 4px}
+  .grid{grid-template-columns:1fr;gap:6px;padding:2px 4px;max-width:none}
   .v{display:flex;align-items:center;box-shadow:none;border-radius:6px;background:#FFF8E6}
   .v:hover{transform:none}
-  .th{flex:0 0 88px;width:88px;aspect-ratio:16/9;border-radius:6px}
+  .th{flex:0 0 80px;width:80px;aspect-ratio:16/9;border-radius:6px}
   .play{width:28px;height:20px;margin:-10px 0 0 -14px;border-radius:5px}
   .play::after{left:11px;top:5px;border-width:5px 0 5px 8px}
   .t{font-size:13px;padding:0 8px;-webkit-line-clamp:2}
