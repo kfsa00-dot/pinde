@@ -87,7 +87,9 @@ var CONFIG = {
   SITE_BASE: 'https://sites.google.com/kfps.tp.edu.tw/pinde/virtues/',
   CROWNS_PAGE: 'https://sites.google.com/kfps.tp.edu.tw/pinde/crowns',
   NEWS_PAGE: 'https://sites.google.com/kfps.tp.edu.tw/pinde/news',
-  HOME_NEWS: 3
+  HOME_NEWS: 3,
+  /* GitHub Actions 每 15 分鐘把試算表抄成這份檔，讀起來比試算表快很多 */
+  DATA_URL: 'https://raw.githubusercontent.com/kfsa00-dot/pinde/main/board/data.json'
 };
 var VIRTUES = ['尊重','同理心','正直','公平','感恩','寬容','負責','自律','善良',
                '謙遜','守信','互助','誠實','合作','毅力','勇氣','獨立','有禮'];
@@ -117,19 +119,44 @@ function urls(gid){
   return ['https://docs.google.com/spreadsheets/d/e/'+CONFIG.PUB_KEY+'/pub?gid='+gid+'&single=true&output=csv',
           'https://docs.google.com/spreadsheets/d/'+CONFIG.SHEET_ID+'/gviz/tq?tqx=out:csv&gid='+gid];
 }
+function fetchWithTimeout(url,ms){
+  return new Promise(function(resolve,reject){
+    var done=false;
+    var t=setTimeout(function(){ if(!done){done=true;reject(new Error('timeout'));} },ms);
+    fetch(url,{credentials:'omit'}).then(function(r){
+      if(done) return; done=true; clearTimeout(t); resolve(r);
+    },function(e){ if(done) return; done=true; clearTimeout(t); reject(e); });
+  });
+}
+function cacheGet(gid){
+  try{ var v=localStorage.getItem('pinde_csv_'+gid); return v?JSON.parse(v):null; }catch(e){ return null; }
+}
+function cacheSet(gid,rows){
+  try{ localStorage.setItem('pinde_csv_'+gid,JSON.stringify(rows)); }catch(e){}
+}
+/* 試算表的公開網址偶爾要十幾秒才回應：主來源 4 秒沒回來就同時打備用來源，誰先成功用誰 */
 function load(gid){
   var list=urls(gid);
-  function tryOne(n){
-    if(n>=list.length) return Promise.reject(new Error('all failed'));
-    return fetch(list[n],{credentials:'omit'}).then(function(r){
-      if(!r.ok) throw new Error(r.status);
-      return r.text();
-    }).then(function(t){
-      if(/^\s*</.test(t)) throw new Error('html');
-      return parseCSV(t);
-    }).catch(function(){ return tryOne(n+1); });
-  }
-  return tryOne(0);
+  return new Promise(function(resolve,reject){
+    var settled=false, failed=0, started=0;
+    function attempt(n){
+      started++;
+      fetchWithTimeout(list[n],20000).then(function(r){
+        if(!r.ok) throw new Error(r.status);
+        return r.text();
+      }).then(function(t){
+        if(/^\s*</.test(t)) throw new Error('html');
+        if(settled) return;
+        settled=true; var rows=parseCSV(t); cacheSet(gid,rows); resolve(rows);
+      }).catch(function(){
+        failed++;
+        if(!settled && n+1<list.length && started===n+1) attempt(n+1);   // 主來源失敗就立刻換備用
+        else if(!settled && failed>=list.length) { settled=true; reject(new Error('all failed')); }
+      });
+    }
+    attempt(0);
+    setTimeout(function(){ if(!settled && started===1) attempt(1); },4000);
+  });
 }
 
 /* ---- 解析 ---- */
@@ -279,7 +306,7 @@ function renderNews(list,limit){
     /* 首頁摘要：過期的自動下架，標題點了跳到活動訊息頁 */
     var live=list.filter(function(n){return !n.past;});
     var head='<h2>活動訊息 <a class="more" href="'+CONFIG.NEWS_PAGE+'" target="_blank" rel="noopener">看全部</a></h2>';
-    if(!live.length) return '<section>'+head+'<p class="empty">目前沒有活動訊息。</p></section>';
+    if(!live.length) return '<section>'+head+'<p class="empty">目前沒有新活動。</p></section>';
     var items=live.slice(0,limit).map(function(n){
       return '<li><span class="date">'+esc(n.label)+'</span><div class="ntxt">'+
         '<a class="nt" href="'+CONFIG.NEWS_PAGE+'" target="_blank" rel="noopener">'+esc(n.title)+'</a>'+
@@ -289,6 +316,8 @@ function renderNews(list,limit){
   }
   /* 活動訊息整頁：收折式，未結束的排前面，過期的變暗 */
   if(!list.length) return '<section><h2>活動訊息</h2><p class="empty">目前沒有活動訊息。</p></section>';
+  var hasLive=list.some(function(n){return !n.past;});
+  var note=hasLive?'':'<p class="empty" style="margin-bottom:10px">目前沒有新活動，以下是已結束的活動。</p>';
   var sorted=list.slice().sort(function(a,b){
     if(a.past!==b.past) return a.past?1:-1;
     return b.key-a.key;
@@ -301,10 +330,15 @@ function renderNews(list,limit){
       '<div class="body">'+(n.desc?'<p class="nd">'+nl2br(n.desc)+'</p>':'')+linkRow(n)+'</div>'+
       '</details>';
   }).join('');
-  return '<section><h2>活動訊息</h2><div class="news">'+items+'</div></section>';
+  return '<section><h2>活動訊息</h2>'+note+'<div class="news">'+items+'</div></section>';
 }
 
-/* ---- 主流程 ---- */
+/* ---- 主流程 ----
+   資料來源三層，越新越優先：
+     1. 瀏覽器快取（上次看過的，立刻顯示）
+     2. data.json（GitHub 每 15 分鐘抄一次，通常一秒內）
+     3. 試算表即時 CSV（最新，但偶爾要十幾秒）
+   每一層到了就重畫，所以不會整塊空白。 */
 (function(){
   var view=(new URLSearchParams(location.search)).get('view')||'all';
   var now=new Date();
@@ -312,22 +346,45 @@ function renderNews(list,limit){
   var y=tw.getFullYear(), m=tw.getMonth()+1;
   var today=y*10000+m*100+tw.getDate();
   var app=document.getElementById('app');
+  var LOADING='<p class="empty">載入中…</p>';
+  var FAIL='<p class="empty">資料暫時讀不到，請稍後重新整理。</p>';
+  var KEYS=view==='news'?['news']:['plan','crowns','news'];
+  var data={}, rank={}, failed={};
+  KEYS.forEach(function(k){
+    var c=cacheGet(CONFIG.GID[k]);
+    if(c){ data[k]=c; rank[k]=1; } else rank[k]=0;
+  });
 
-  if(view==='news'){
-    load(CONFIG.GID.news).then(function(rows){
-      app.innerHTML=renderNews(markPast(newsList(rows),today),0);
-    }).catch(function(){ app.innerHTML='<div class="err">資料暫時讀不到，請稍後再試。</div>'; });
-    return;
+  function section(key,title,fn){
+    if(rank[key]>0) return fn(data[key]);
+    return '<section><h2>'+title+'</h2>'+(failed[key]?FAIL:LOADING)+'</section>';
   }
-
-  var jobs=[load(CONFIG.GID.plan),load(CONFIG.GID.crowns),load(CONFIG.GID.news)]
-    .map(function(p){return p.catch(function(){return null;});});
-  Promise.all(jobs).then(function(r){
+  function draw(){
+    if(view==='news'){
+      app.innerHTML=section('news','活動訊息',function(r){return renderNews(markPast(newsList(r),today),0);});
+      return;
+    }
     var html='';
-    if(view!=='crowns') html+=renderVirtue(rocLabel(y,m),r[0]?lookupVirtue(r[0],y,m):'');
-    if(view!=='virtue') html+=renderCrowns(r[1]?latestCrowns(r[1],y,m):null);
-    if(view==='all')    html+=renderNews(r[2]?markPast(newsList(r[2]),today):[],CONFIG.HOME_NEWS);
+    if(view!=='crowns') html+=section('plan','本月德目',function(r){return renderVirtue(rocLabel(y,m),lookupVirtue(r,y,m));});
+    if(view!=='virtue') html+=section('crowns','品德三冠王',function(r){return renderCrowns(latestCrowns(r,y,m));});
+    if(view==='all')    html+=section('news','活動訊息',function(r){return renderNews(markPast(newsList(r),today),CONFIG.HOME_NEWS);});
     app.innerHTML=html;
+  }
+  function put(key,rows,r){
+    if(!rows||!rows.length||r<rank[key]) return;
+    data[key]=rows; rank[key]=r; draw();
+  }
+  draw();
+
+  fetchWithTimeout(CONFIG.DATA_URL+'?t='+Math.floor(Date.now()/60000),8000)
+    .then(function(res){ if(!res.ok) throw new Error(res.status); return res.json(); })
+    .then(function(j){ KEYS.forEach(function(k){ put(k,j[k],2); }); })
+    .catch(function(){});
+
+  var pending=KEYS.length;
+  KEYS.forEach(function(k){
+    load(CONFIG.GID[k]).then(function(rows){ put(k,rows,3); })
+      .catch(function(){ failed[k]=true; if(!rank[k]) draw(); });
   });
 })();
 </script>
