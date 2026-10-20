@@ -50,6 +50,18 @@ a.nt:hover{color:#b87b00;text-decoration:underline}
 .lnk:hover{background:#F7E7BC}
 .nd.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mnote{display:none}
+.mbtn{display:none}
+/* 得獎班級清單頁（?view=award，手機從首頁按鈕另開） */
+.award{max-width:720px;margin:0 auto;padding:12px 12px 24px}
+.award h1{font-size:20px;font-weight:700;margin:4px 0 4px}
+.award .sub{font-size:13px;color:#6b6b6b;margin:0 0 14px}
+.gcard{border:1px solid #f0e6cc;border-radius:10px;padding:10px 12px;margin:0 0 10px;background:#fff}
+.gname{font-size:16px;font-weight:700;margin:0 0 6px;color:#8a6a12}
+.grow{display:flex;gap:8px;align-items:baseline;padding:3px 0;border-top:1px dashed #f3ead2}
+.grow:first-of-type{border-top:0}
+.gcat{flex:0 0 5.2em;font-size:14px;color:#555}
+.gval{flex:1 1 auto;font-size:15px}
+.back{display:inline-block;margin-top:6px;font-size:14px;color:#9a6700}
 .err{padding:12px;color:#8a6a12;background:#FFF4D6;border-radius:6px;font-size:14px}
 
 /* 手機：協作平台會把內嵌框壓成固定比例，內容放不下會被切掉，
@@ -65,7 +77,10 @@ a.nt:hover{color:#b87b00;text-decoration:underline}
   .btn{display:inline-block;padding:2px 8px;font-size:12px;margin-left:8px}
   .empty{font-size:13px}
   .tbl{display:none}
-  .mnote{display:block;font-size:12px;color:#6b6b6b;margin:0}
+  .mnote{display:none}
+  .mbtn{display:inline-block;background:#D99100;color:#fff;text-decoration:none;border-radius:4px;
+        padding:3px 10px;font-size:12px;margin:1px 0 0}
+  .award .gval{font-size:14px}
   ul.news li{padding:3px 0;gap:8px}
   ul.news li:nth-child(n+2){display:none}
   .date{font-size:11px;padding:1px 8px}
@@ -298,8 +313,23 @@ function renderCrowns(data){
     }).join('')+'</tr>';
   }).join('');
   return '<section><h2>'+esc(data.label)+' 品德三冠王 '+more+'</h2>'+
-    '<p class="mnote">得獎班級請用電腦版查看。</p>'+
+    '<a class="mbtn" href="./?view=award" target="_blank" rel="noopener">看各年級得獎班級</a>'+
     '<div class="tbl"><table>'+th+trs+'</table></div></section>';
+}
+/* 手機用的得獎班級清單（每個年級一張卡片） */
+function renderAward(data){
+  var back='<a class="back" href="https://sites.google.com/kfps.tp.edu.tw/pinde" target="_top">← 回光復國小品德教育網</a>';
+  if(!data) return '<div class="award"><h1>品德三冠王</h1><p class="sub">得獎班級尚未公布。</p>'+back+'</div>';
+  var cards=data.grades.map(function(r){
+    return '<div class="gcard"><div class="gname">'+r.grade+'</div>'+
+      r.cells.map(function(list,i){
+        return '<div class="grow"><span class="gcat">'+CROWN_CATS[i]+'</span><span class="gval">'+
+          (list.length?list.map(function(c){return '<span class="chip">'+esc(c)+'</span>';}).join(''):'<span class="none">—</span>')+
+          '</span></div>';
+      }).join('')+'</div>';
+  }).join('');
+  return '<div class="award"><h1>'+esc(data.label)+' 品德三冠王</h1>'+
+    '<p class="sub">各年級行儀楷模、自律典範、整潔實踐得獎班級</p>'+cards+back+'</div>';
 }
 function renderNews(list,limit){
   if(limit){
@@ -347,7 +377,7 @@ function renderNews(list,limit){
   var app=document.getElementById('app');
   var LOADING='<p class="empty">載入中…</p>';
   var FAIL='<p class="empty">資料暫時讀不到，請稍後重新整理。</p>';
-  var KEYS=view==='news'?['news']:['plan','crowns','news'];
+  var KEYS=view==='news'?['news']:view==='award'?['crowns']:['plan','crowns','news'];
   var data={}, rank={}, failed={};
   KEYS.forEach(function(k){
     var c=cacheGet(CONFIG.GID[k]);
@@ -359,6 +389,11 @@ function renderNews(list,limit){
     return '<section><h2>'+title+'</h2>'+(failed[key]?FAIL:LOADING)+'</section>';
   }
   function draw(){
+    if(view==='award'){
+      app.innerHTML=rank.crowns>0?renderAward(latestCrowns(data.crowns,y,m))
+        :'<div class="award"><h1>品德三冠王</h1>'+(failed.crowns?FAIL:LOADING)+'</div>';
+      return;
+    }
     if(view==='news'){
       app.innerHTML=section('news','活動訊息',function(r){return renderNews(markPast(newsList(r),today),0);});
       return;
