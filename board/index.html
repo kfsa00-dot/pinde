@@ -16,7 +16,7 @@ h2{font-size:22px;font-weight:400;margin:0 0 14px}
 .btn{display:inline-block;background:#D99100;color:#fff;text-decoration:none;padding:8px 18px;border-radius:4px;font-size:15px}
 .btn:hover{background:#b87b00}
 .empty{font-size:15px;color:#6b6b6b;margin:0}
-.more{font-size:14px;color:#b87b00;margin-left:10px;text-decoration:none;border-bottom:1px solid #e8c77a}
+.more{font-size:14px;color:#9a6700;margin-left:10px;text-decoration:none;border-bottom:1px solid #e8c77a}
 .tbl{overflow-x:auto}
 table{border-collapse:collapse;min-width:520px;width:100%;font-size:15px}
 th,td{border-bottom:1px solid #eee;padding:8px 10px;text-align:left;vertical-align:top}
@@ -165,15 +165,6 @@ function parseMonth(text){
   return m?[Number(m[1])+1911,Number(m[2])]:null;
 }
 function rocLabel(y,m){ return (y-1911)+'年'+m+'月'; }
-function parseDate(text){
-  var t=String(text).trim();
-  var m=t.match(/(\d{2,4})\s*[\/\-年.]\s*(\d{1,2})\s*[\/\-月.]\s*(\d{1,2})/);
-  if(!m) return null;
-  var y=Number(m[1]); if(y<1911) y+=1911;
-  var mo=Number(m[2]), d=Number(m[3]);
-  if(mo<1||mo>12||d<1||d>31) return null;
-  return [y,mo,d];
-}
 function rocDate(d){ return (d[0]-1911)+'年'+d[1]+'月'+d[2]+'日'; }
 /* 一格可能寫「115/9/14-115/11/15」＝活動期間，取第一個與最後一個日期 */
 function parseDates(text){
@@ -186,6 +177,13 @@ function parseDates(text){
   return out;
 }
 function dayKey(d){ return d[0]*10000+d[1]*100+d[2]; }
+/* 台北的今天（不依賴裝置時區，也不靠非標準的日期字串解析） */
+function taipeiToday(now){
+  var p={};
+  new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Taipei',year:'numeric',month:'numeric',day:'numeric'})
+    .formatToParts(now||new Date()).forEach(function(x){ p[x.type]=x.value; });
+  return {y:Number(p.year), m:Number(p.month), d:Number(p.day)};
+}
 function rangeLabel(a,b){
   if(dayKey(a)===dayKey(b)) return rocDate(a);
   return rocDate(a)+'～'+(a[0]===b[0]? b[1]+'月'+b[2]+'日' : rocDate(b));
@@ -261,10 +259,12 @@ function markPast(list,todayKey){
   return list;
 }
 function nl2br(s){ return esc(s).replace(/\n/g,'<br>'); }
+/* 只接受 http(s) 網址，避免試算表裡的 javascript: 之類網址被做成可執行的連結 */
+function safeUrl(u){ u=String(u||'').trim(); return /^https?:\/\//i.test(u)?u:''; }
 function linkRow(n){
-  var a='';
-  if(n.url)  a+='<a class="lnk" href="'+esc(n.url)+'" target="_blank" rel="noopener">相關連結</a>';
-  if(n.file) a+='<a class="lnk" href="'+esc(n.file)+'" target="_blank" rel="noopener">附件</a>';
+  var a='', url=safeUrl(n.url), file=safeUrl(n.file);
+  if(url)  a+='<a class="lnk" href="'+esc(url)+'" target="_blank" rel="noopener">相關連結</a>';
+  if(file) a+='<a class="lnk" href="'+esc(file)+'" target="_blank" rel="noopener">附件</a>';
   return a?'<p class="lnks">'+a+'</p>':'';
 }
 
@@ -341,10 +341,9 @@ function renderNews(list,limit){
    每一層到了就重畫，所以不會整塊空白。 */
 (function(){
   var view=(new URLSearchParams(location.search)).get('view')||'all';
-  var now=new Date();
-  var tw=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
-  var y=tw.getFullYear(), m=tw.getMonth()+1;
-  var today=y*10000+m*100+tw.getDate();
+  var tw=taipeiToday();
+  var y=tw.y, m=tw.m;
+  var today=dayKey([tw.y,tw.m,tw.d]);
   var app=document.getElementById('app');
   var LOADING='<p class="empty">載入中…</p>';
   var FAIL='<p class="empty">資料暫時讀不到，請稍後重新整理。</p>';
