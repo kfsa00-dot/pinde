@@ -29,10 +29,10 @@ ul.news{list-style:none;margin:0;padding:0}
 ul.news li{display:flex;gap:14px;align-items:baseline;padding:10px 0;border-bottom:1px solid #f0e6cc}
 ul.news li:last-child{border-bottom:0}
 .date{flex:0 0 auto;background:#FFF4D6;color:#8a6a12;border-radius:12px;padding:2px 10px;font-size:13px;white-space:nowrap}
-.ntxt{flex:1 1 auto}
+.ntxt{flex:1 1 auto;min-width:0}  /* 不加的話長標題不換行，在手機框裡被切掉 */
 .nt{font-size:16px;color:#212121;text-decoration:none;font-weight:600}
 a.nt:hover{color:#b87b00;text-decoration:underline}
-.nd{margin:4px 0 0;font-size:14px;color:#5f5f5f;line-height:1.5}
+.nd{margin:4px 0 0;font-size:14px;color:#5f5f5f;line-height:1.5;overflow-wrap:anywhere}  /* 長網址會把手機版面撐寬 */
 .item{border-bottom:1px solid #f0e6cc}
 .item:last-child{border-bottom:0}
 .item>summary{list-style:none;cursor:pointer;display:flex;gap:14px;align-items:baseline;padding:10px 0}
@@ -49,7 +49,6 @@ a.nt:hover{color:#b87b00;text-decoration:underline}
      padding:2px 10px;margin:0 8px 0 0;font-size:13px;text-decoration:none}
 .lnk:hover{background:#F7E7BC}
 .nd.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.mnote{display:none}
 .mbtn{display:none}
 /* 得獎班級清單頁（?view=award，手機從首頁按鈕另開） */
 .award{max-width:720px;margin:0 auto;padding:12px 12px 24px}
@@ -77,7 +76,6 @@ a.nt:hover{color:#b87b00;text-decoration:underline}
   .btn{display:inline-block;padding:2px 8px;font-size:12px;margin-left:8px}
   .empty{font-size:13px}
   .tbl{display:none}
-  .mnote{display:none}
   .mbtn{display:inline-block;background:#D99100;color:#fff;text-decoration:none;border-radius:4px;
         padding:3px 10px;font-size:12px;margin:1px 0 0}
   .award .gval{font-size:14px}
@@ -85,10 +83,13 @@ a.nt:hover{color:#b87b00;text-decoration:underline}
   ul.news li:nth-child(n+2){display:none}
   .date{font-size:11px;padding:1px 8px}
   .nt{font-size:13px}
-  .nd{display:none}
+  .nd,.nd.clamp{display:none}  /* .nd.clamp 權重比 .nd 高，要一起寫才藏得掉 */
   .lnks{display:none}
   .item>summary{padding:3px 0;gap:8px}
   .item .body{padding:0 0 6px}
+  /* 另開的整頁（不在協作平台框裡）空間足夠，內容照常顯示、不用再按按鈕 */
+  .full .item .nd,.full .item .lnks{display:block}
+  .full .item .mbtn{display:none}
 }
 </style>
 </head>
@@ -103,7 +104,8 @@ var CONFIG = {
   CROWNS_PAGE: 'https://sites.google.com/kfps.tp.edu.tw/pinde/crowns',
   NEWS_PAGE: 'https://sites.google.com/kfps.tp.edu.tw/pinde/news',
   HOME_NEWS: 3,
-  /* GitHub Actions 每 15 分鐘把試算表抄成這份檔，讀起來比試算表快很多 */
+  /* GitHub Actions 定時把試算表抄成這份檔（排程寫每 15 分鐘，GitHub 實際約 3～6 小時跑一次），
+     讀起來比試算表快很多；最新內容仍以下面的即時 CSV 為準 */
   DATA_URL: 'https://raw.githubusercontent.com/kfsa00-dot/pinde/main/board/data.json'
 };
 var VIRTUES = ['尊重','同理心','正直','公平','感恩','寬容','負責','自律','善良',
@@ -352,12 +354,15 @@ function renderNews(list,limit){
     if(a.past!==b.past) return a.past?1:-1;
     return b.key-a.key;
   });
-  var items=sorted.map(function(n){
-    return '<details class="item'+(n.past?' past':'')+'">'+
+  /* 手機的協作平台框只有約 340×200，展開後內容放不下，所以框裡只放「看活動內容」按鈕，
+     另開整頁並自動展開這一則（open=序號） */
+  var items=sorted.map(function(n,i){
+    return '<details class="item'+(n.past?' past':'')+'" id="n'+i+'">'+
       '<summary><span class="date">'+esc(n.label)+'</span>'+
       '<span class="nt">'+esc(n.title)+'</span>'+
       (n.past?'<span class="tag">已結束</span>':'')+'</summary>'+
-      '<div class="body">'+(n.desc?'<p class="nd">'+nl2br(n.desc)+'</p>':'')+linkRow(n)+'</div>'+
+      '<div class="body">'+(n.desc?'<p class="nd">'+nl2br(n.desc)+'</p>':'')+linkRow(n)+
+      '<a class="mbtn" href="./?view=news&amp;open='+i+'" target="_blank" rel="noopener">看活動內容</a></div>'+
       '</details>';
   }).join('');
   return '<section><h2>活動訊息</h2>'+note+'<div class="news">'+items+'</div></section>';
@@ -366,19 +371,25 @@ function renderNews(list,limit){
 /* ---- 主流程 ----
    資料來源三層，越新越優先：
      1. 瀏覽器快取（上次看過的，立刻顯示）
-     2. data.json（GitHub 每 15 分鐘抄一次，通常一秒內）
+     2. data.json（GitHub 每幾小時抄一次，通常一秒內）
      3. 試算表即時 CSV（最新，但偶爾要十幾秒）
    每一層到了就重畫，所以不會整塊空白。 */
 (function(){
-  var view=(new URLSearchParams(location.search)).get('view')||'all';
+  var params=new URLSearchParams(location.search);
+  var view=params.get('view')||'all';
+  var want=params.get('open');            // 從手機按鈕另開時，要自動展開的那一則
+  /* 不在框裡＝使用者另開的整頁，手機也照常顯示活動內容（見 CSS .full） */
+  var isTop=true; try{ isTop=window.top===window.self; }catch(e){ isTop=false; }
+  if(isTop) document.documentElement.className='full';
   var tw=taipeiToday();
   var y=tw.y, m=tw.m;
   var today=dayKey([tw.y,tw.m,tw.d]);
   var app=document.getElementById('app');
   var LOADING='<p class="empty">載入中…</p>';
   var FAIL='<p class="empty">資料暫時讀不到，請稍後重新整理。</p>';
+  var BACK='<p><a class="back" href="'+CONFIG.NEWS_PAGE+'" target="_top">← 回光復國小品德教育網</a></p>';
   var KEYS=view==='news'?['news']:view==='award'?['crowns']:['plan','crowns','news'];
-  var data={}, rank={}, failed={};
+  var data={}, rank={}, failed={}, last='', jumped=false;
   KEYS.forEach(function(k){
     var c=cacheGet(CONFIG.GID[k]);
     if(c){ data[k]=c; rank[k]=1; } else rank[k]=0;
@@ -388,21 +399,33 @@ function renderNews(list,limit){
     if(rank[key]>0) return fn(data[key]);
     return '<section><h2>'+title+'</h2>'+(failed[key]?FAIL:LOADING)+'</section>';
   }
-  function draw(){
-    if(view==='award'){
-      app.innerHTML=rank.crowns>0?renderAward(latestCrowns(data.crowns,y,m))
+  function build(){
+    if(view==='award')
+      return rank.crowns>0?renderAward(latestCrowns(data.crowns,y,m))
         :'<div class="award"><h1>品德三冠王</h1>'+(failed.crowns?FAIL:LOADING)+'</div>';
-      return;
-    }
-    if(view==='news'){
-      app.innerHTML=section('news','活動訊息',function(r){return renderNews(markPast(newsList(r),today),0);});
-      return;
-    }
+    if(view==='news')
+      return section('news','活動訊息',function(r){return renderNews(markPast(newsList(r),today),0);})+
+        (isTop?BACK:'');
     var html='';
     if(view!=='crowns') html+=section('plan','本月德目',function(r){return renderVirtue(rocLabel(y,m),lookupVirtue(r,y,m));});
     if(view!=='virtue') html+=section('crowns','品德三冠王',function(r){return renderCrowns(latestCrowns(r,y,m));});
     if(view==='all')    html+=section('news','活動訊息',function(r){return renderNews(markPast(newsList(r),today),CONFIG.HOME_NEWS);});
-    app.innerHTML=html;
+    return html;
+  }
+  /* 資料會分三次到，每次都重畫：內容沒變就不動畫面；
+     有變也要保留使用者已經點開的活動，不然看到一半會突然收起來 */
+  function draw(){
+    var html=build();
+    if(html===last) return;
+    var open={};
+    [].forEach.call(app.querySelectorAll('details[open]'),function(d){ open[d.id]=1; });
+    if(want!=null&&!jumped) open['n'+want]=1;
+    app.innerHTML=last=html;
+    Object.keys(open).forEach(function(id){ var d=document.getElementById(id); if(d) d.open=true; });
+    if(want!=null&&!jumped){
+      var t=document.getElementById('n'+want);
+      if(t){ jumped=true; t.scrollIntoView(); }
+    }
   }
   function put(key,rows,r){
     if(!rows||!rows.length||r<rank[key]) return;
@@ -415,7 +438,6 @@ function renderNews(list,limit){
     .then(function(j){ KEYS.forEach(function(k){ put(k,j[k],2); }); })
     .catch(function(){});
 
-  var pending=KEYS.length;
   KEYS.forEach(function(k){
     load(CONFIG.GID[k]).then(function(rows){ put(k,rows,3); })
       .catch(function(){ failed[k]=true; if(!rank[k]) draw(); });
